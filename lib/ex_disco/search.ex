@@ -1,0 +1,50 @@
+defmodule ExDisco.Search do
+  @moduledoc """
+  Generic Discogs search across resource types.
+  """
+
+  alias ExDisco.{API, Request}
+
+  @type filter_key ::
+          :q
+          | :title
+          | :artist
+          | :label
+          | :album
+          | :catno
+          | :barcode
+          | :format
+          | :year
+          | :genre
+          | :style
+          | :track
+          | :contributor
+          | :sort
+          | :sort_order
+          | :page
+          | :per_page
+
+  @type filters :: [{filter_key(), String.t() | integer()}]
+
+  @doc """
+  Searches the Discogs database for a given resource type.
+
+  Returns a list of raw result maps. Callers are responsible for mapping
+  results into typed structs.
+
+  ## Examples
+
+      ExDisco.Search.query(:artist, q: "Rhadoo")
+      ExDisco.Search.query(:label, q: "Fabric")
+
+  """
+  @spec query(atom(), filters()) :: API.response([map()])
+  def query(type, filters) when is_atom(type) and is_list(filters) do
+    params = Keyword.put_new(filters, :type, Atom.to_string(type))
+
+    API.new_request()
+    |> Request.path("/database/search")
+    |> Request.put_query(params)
+    |> API.execute_collection(& &1)
+  end
+end
