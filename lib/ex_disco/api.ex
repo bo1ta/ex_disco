@@ -34,38 +34,32 @@ defmodule ExDisco.API do
 
   @spec execute(Request.t(), (map() -> value)) :: response(value) when value: var
   def execute(%Request{} = request, mapper) when is_function(mapper, 1) do
-    case exec(request) do
-      {:ok, body} -> {:ok, mapper.(body)}
-      error -> error
+    with {:ok, body} <- exec(request) do
+      {:ok, mapper.(body)}
     end
   end
 
   @spec execute_page(Request.t(), (map() -> value)) :: response(Page.t(value)) when value: var
   def execute_page(%Request{} = request, mapper) when is_function(mapper, 1) do
-    case exec(request) do
-      {:ok, %{"results" => items} = body} ->
-        pagination = Map.get(body, "pagination", %{})
+    with {:ok, %{"results" => items} = body} <- exec(request) do
+      pagination = Map.get(body, "pagination", %{})
 
-        {:ok,
-         %Page{
-           items: Enum.map(items, mapper),
-           page: pagination["page"],
-           pages: pagination["pages"],
-           per_page: pagination["per_page"],
-           total: pagination["items"],
-           raw: body
-         }}
-
-      other ->
-        other
+      {:ok,
+       %Page{
+         items: Enum.map(items, mapper),
+         page: pagination["page"],
+         pages: pagination["pages"],
+         per_page: pagination["per_page"],
+         total: pagination["items"],
+         raw: body
+       }}
     end
   end
 
   @spec execute_collection(Request.t(), (map() -> value)) :: response([value]) when value: var
   def execute_collection(%Request{} = request, mapper) when is_function(mapper, 1) do
-    case execute_page(request, mapper) do
-      {:ok, %Page{items: items}} -> {:ok, items}
-      error -> error
+    with {:ok, %Page{items: items}} <- execute_page(request, mapper) do
+      {:ok, items}
     end
   end
 
