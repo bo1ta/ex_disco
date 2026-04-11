@@ -2,7 +2,7 @@ defmodule ExDisco.ReleasesTest do
   use ExDisco.ApiCase, async: false
 
   alias ExDisco.Releases
-  alias ExDisco.Releases.{Community, ReleaseStats, Format, Release, Track, Video}
+  alias ExDisco.Releases.{Community, Rating, ReleaseStats, Format, Release, Track, Video}
 
   alias ExDisco.Types.{ArtistCredit, CreditEntity, Image}
 
@@ -132,6 +132,13 @@ defmodule ExDisco.ReleasesTest do
     "num_have" => 230,
     "num_want" => 1_000,
     "is_offensive" => false
+  }
+
+  @rating_response %{
+    "rating" => %{
+      "count" => 227,
+      "average" => 3.82
+    }
   }
 
   describe "get/1" do
@@ -346,6 +353,28 @@ defmodule ExDisco.ReleasesTest do
 
       assert {:ok, %ReleaseStats{is_offensive: false, num_have: 230, num_want: 1_000}} =
                Releases.get_stats(249_504)
+    end
+  end
+
+  describe "get_rating/1" do
+    test "hits the correct endpoint" do
+      Req.Test.expect(__MODULE__, fn conn ->
+        assert conn.method == "GET"
+        assert conn.request_path == "/releases/249504/rating"
+        assert {"user-agent", "ex_disco/0.1.0"} in conn.req_headers
+
+        Req.Test.json(conn, @rating_response)
+      end)
+
+      assert {:ok, %Rating{}} = Releases.get_rating(249_504)
+    end
+
+    test "maps fields" do
+      Req.Test.expect(__MODULE__, fn conn ->
+        Req.Test.json(conn, @rating_response)
+      end)
+
+      assert {:ok, %Rating{count: 227, average: 3.82}} = Releases.get_rating(249_504)
     end
   end
 end
