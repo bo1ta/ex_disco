@@ -3,7 +3,9 @@ defmodule ExDisco.Search do
   Generic Discogs search across resource types.
   """
 
-  alias ExDisco.{API, Request}
+  alias ExDisco.{API, Request, Error}
+
+  @type query_type :: :release | :master | :artist | :label
 
   @type filter_key ::
           :q
@@ -38,7 +40,7 @@ defmodule ExDisco.Search do
       ExDisco.Search.query(:label, q: "Fabric")
 
   """
-  @spec query(atom(), filters()) :: API.response([map()])
+  @spec query(query_type(), filters()) :: {:ok, [map()]} | {:error, Error.t()}
   def query(type, filters) when is_atom(type) and is_list(filters) do
     params = Keyword.put_new(filters, :type, Atom.to_string(type))
 

@@ -26,7 +26,6 @@ defmodule ExDisco.MixProject do
   defp deps do
     [
       {:req, "~> 0.5"},
-      {:nimble_options, "~> 1.1"},
       {:plug, "~> 1.18", only: :test},
       {:ex_doc, "~> 0.38", only: :dev, runtime: false}
     ]
