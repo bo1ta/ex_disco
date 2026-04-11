@@ -4,7 +4,7 @@ defmodule ExDisco.Artists.Artist do
   """
 
   alias ExDisco.Artists.ArtistAlias
-  alias ExDisco.Artists.Image
+  alias ExDisco.Types.Image
 
   @enforce_keys [:id, :name]
   defstruct [

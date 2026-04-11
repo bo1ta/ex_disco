@@ -1,25 +1,15 @@
 defmodule ExDisco.API do
-  @moduledoc """
-  Low-level HTTP transport for the Discogs API.
+  @moduledoc false
 
-  This module is intentionally dumb. It takes already-shaped request data,
-  applies configured defaults, and delegates the actual call to `Req`.
-  """
+  alias ExDisco.{Config, Error}
 
-  alias ExDisco.{Config, Error, Page, Request}
+  @base_url "https://api.discogs.com"
+  @default_user_agent "ex_disco/0.1.0"
 
   @type method :: :get | :post
   @type headers :: [{String.t(), String.t()}]
   @type query :: keyword()
   @type body :: term()
-
-  @type response(value) :: {:ok, value} | {:error, Error.t()}
-
-  @base_url "https://api.discogs.com"
-  @default_user_agent "ex_disco/0.1.0"
-
-  @spec new_request() :: Request.t()
-  def new_request, do: Request.new()
 
   @spec request(method(), String.t(), headers(), query(), body()) ::
           {:ok, Req.Response.t()} | {:error, Exception.t()}
@@ -32,35 +22,24 @@ defmodule ExDisco.API do
       {:error, exception}
   end
 
-  @spec execute(Request.t(), (map() -> value)) :: response(value) when value: var
-  def execute(%Request{} = request, mapper) when is_function(mapper, 1) do
-    with {:ok, body} <- exec(request) do
-      {:ok, mapper.(body)}
-    end
+  @spec api_error(integer(), term()) :: Error.t()
+  def api_error(status, body) do
+    %Error{
+      type: error_type(status),
+      status: status,
+      message: extract_message(body, status),
+      details: body
+    }
   end
 
-  @spec execute_page(Request.t(), (map() -> value)) :: response(Page.t(value)) when value: var
-  def execute_page(%Request{} = request, mapper) when is_function(mapper, 1) do
-    with {:ok, %{"results" => items} = body} <- exec(request) do
-      pagination = Map.get(body, "pagination", %{})
-
-      {:ok,
-       %Page{
-         items: Enum.map(items, mapper),
-         page: pagination["page"],
-         pages: pagination["pages"],
-         per_page: pagination["per_page"],
-         total: pagination["items"],
-         raw: body
-       }}
-    end
-  end
-
-  @spec execute_collection(Request.t(), (map() -> value)) :: response([value]) when value: var
-  def execute_collection(%Request{} = request, mapper) when is_function(mapper, 1) do
-    with {:ok, %Page{items: items}} <- execute_page(request, mapper) do
-      {:ok, items}
-    end
+  @spec transport_error(Exception.t()) :: Error.t()
+  def transport_error(exception) do
+    %Error{
+      type: :transport_error,
+      status: nil,
+      message: Exception.message(exception),
+      details: exception
+    }
   end
 
   @spec build_request(method(), String.t(), headers(), query(), body()) :: Req.Request.t()
@@ -82,21 +61,6 @@ defmodule ExDisco.API do
     )
   end
 
-  @spec exec(Request.t()) :: response(map())
-  defp exec(%Request{} = request) do
-    case Request.exec(request) do
-      {:ok, %Req.Response{status: status, body: body}}
-      when status in 200..299 ->
-        {:ok, body}
-
-      {:ok, %Req.Response{status: status, body: body}} ->
-        {:error, api_error(status, body)}
-
-      {:error, exception} ->
-        {:error, transport_error(exception)}
-    end
-  end
-
   defp put_default_header(headers, key, value) do
     if Enum.any?(headers, fn {existing_key, _value} -> String.downcase(existing_key) == key end) do
       headers
@@ -110,24 +74,6 @@ defmodule ExDisco.API do
   end
 
   defp maybe_put_auth(headers, nil), do: headers
-
-  defp api_error(status, body) do
-    %Error{
-      type: error_type(status),
-      status: status,
-      message: extract_message(body, status),
-      details: body
-    }
-  end
-
-  defp transport_error(exception) do
-    %Error{
-      type: :transport_error,
-      status: nil,
-      message: Exception.message(exception),
-      details: exception
-    }
-  end
 
   defp extract_message(%{"message" => message}, _status) when is_binary(message), do: message
   defp extract_message(_body, status), do: "Discogs request failed with status #{status}"

@@ -1,4 +1,4 @@
-defmodule ExDisco.Artists.Image do
+defmodule ExDisco.Types.Image do
   @moduledoc """
   Discogs artist image struct
   """
@@ -26,4 +26,9 @@ defmodule ExDisco.Artists.Image do
       height: data["height"]
     }
   end
+
+  @spec from_api_list(list(map())) :: [t()]
+  def from_api_list(data) when is_list(data), do: Enum.map(data, &from_api/1)
+
+  def from_api_list(_), do: []
 end

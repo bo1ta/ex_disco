@@ -3,21 +3,21 @@ defmodule ExDisco.Artists do
   Discogs artist resource
   """
 
-  alias ExDisco.{API, Request, Search, Error}
+  alias ExDisco.{Request, Search, Error}
   alias ExDisco.Artists.Artist
 
   @doc """
-  Fetches a single artist by Discogs ID
+  Fetches a single artist by Discogs ID.
   """
   @spec get(pos_integer()) :: {:ok, Artist.t()} | {:error, Error.t()}
   def get(id) when is_integer(id) and id > 0 do
-    API.new_request()
+    Request.new()
     |> Request.path("/artists/#{id}")
-    |> API.execute(&Artist.from_api/1)
+    |> Request.execute(&Artist.from_api/1)
   end
 
   @doc """
-  Searches for artists by filters.
+  Searches for artists by filters and maps the results.
   """
   @spec search(Search.filters()) :: {:ok, [Artist.t()]} | {:error, Error.t()}
   def search(filters) when is_list(filters) do

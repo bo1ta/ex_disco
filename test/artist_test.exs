@@ -4,7 +4,7 @@ defmodule ExDisco.ArtistTest do
   alias ExDisco.Artists
   alias ExDisco.Artists.Artist
   alias ExDisco.Artists.ArtistAlias
-  alias ExDisco.Artists.Image
+  alias ExDisco.Types.Image
 
   test "fetches a single artist by id" do
     Req.Test.expect(__MODULE__, fn conn ->
