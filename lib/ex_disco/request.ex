@@ -67,8 +67,14 @@ defmodule ExDisco.Request do
   end
 
   @spec execute_page(t(), (map() -> value)) :: response(Page.t(value)) when value: var
-  def execute_page(%__MODULE__{} = request, mapper) when is_function(mapper, 1) do
-    with {:ok, %{"results" => items} = body} <- exec(request) do
+  def execute_page(%__MODULE__{} = request, mapper),
+    do: execute_page(request, "results", mapper)
+
+  @spec execute_page(t(), String.t(), (map() -> value)) :: response(Page.t(value)) when value: var
+  def execute_page(%__MODULE__{} = request, items_key, mapper)
+      when is_binary(items_key) and is_function(mapper, 1) do
+    with {:ok, body} <- exec(request) do
+      items = Map.get(body, items_key, [])
       pagination = Map.get(body, "pagination", %{})
 
       {:ok,
@@ -83,8 +89,13 @@ defmodule ExDisco.Request do
   end
 
   @spec execute_collection(t(), (map() -> value)) :: response([value]) when value: var
-  def execute_collection(%__MODULE__{} = request, mapper) when is_function(mapper, 1) do
-    with {:ok, %Page{items: items}} <- execute_page(request, mapper) do
+  def execute_collection(%__MODULE__{} = request, mapper),
+    do: execute_collection(request, "results", mapper)
+
+  @spec execute_collection(t(), String.t(), (map() -> value)) :: response([value]) when value: var
+  def execute_collection(%__MODULE__{} = request, items_key, mapper)
+      when is_binary(items_key) and is_function(mapper, 1) do
+    with {:ok, %Page{items: items}} <- execute_page(request, items_key, mapper) do
       {:ok, items}
     end
   end

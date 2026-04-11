@@ -5,6 +5,7 @@ defmodule ExDisco.Artists do
 
   alias ExDisco.{Request, Search, Error}
   alias ExDisco.Artists.Artist
+  alias ExDisco.Types.ReleaseSummary
 
   @doc """
   Fetches a single artist by Discogs ID.
@@ -14,6 +15,16 @@ defmodule ExDisco.Artists do
     Request.new()
     |> Request.path("/artists/#{id}")
     |> Request.execute(&Artist.from_api/1)
+  end
+
+  @doc """
+  Fetches a paginated list of releases for a given artist ID.
+  """
+  @spec get_releases(pos_integer()) :: {:ok, [ReleaseSummary.t()]} | {:error, Error.t()}
+  def get_releases(id) when is_integer(id) and id > 0 do
+    Request.new()
+    |> Request.path("/artists/#{id}/releases")
+    |> Request.execute_collection("releases", &ReleaseSummary.from_api/1)
   end
 
   @doc """
