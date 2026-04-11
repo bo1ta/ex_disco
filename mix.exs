@@ -1,0 +1,47 @@
+defmodule ExDisco.MixProject do
+  use Mix.Project
+
+  def project do
+    [
+      app: :ex_disco,
+      version: "0.1.0",
+      description: "An Elixir client for the Discogs API",
+      elixir: "~> 1.18",
+      start_permanent: Mix.env() == :prod,
+      deps: deps(),
+      docs: docs(),
+      package: package()
+    ]
+  end
+
+  # Run "mix help compile.app" to learn about applications.
+  def application do
+    [
+      extra_applications: [:logger]
+    ]
+  end
+
+  # Run "mix help deps" to learn about dependencies.
+  defp deps do
+    [
+      {:req, "~> 0.5"},
+      {:nimble_options, "~> 1.1"},
+      {:ex_doc, "~> 0.38", only: :dev, runtime: false}
+    ]
+  end
+
+  defp docs do
+    [
+      main: "ExDisco"
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => "https://github.com/bo1ta/ex_disco"
+      }
+    ]
+  end
+end
