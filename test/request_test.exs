@@ -1,26 +1,29 @@
 defmodule ExDisco.RequestTest do
   use ExDisco.ApiCase, async: false
 
-  alias ExDisco.Auth
-  alias ExDisco.Auth.UserToken
+  alias ExDisco.Auth.Authorization
   alias ExDisco.Request
 
-  test "request builder can override app-configured auth per request" do
-    Application.put_env(:ex_disco, ExDisco,
-      user_agent: "ex_disco/0.1.0",
-      auth: %UserToken{token: "global-token"},
-      req_options: [plug: {Req.Test, __MODULE__}]
-    )
-
+  test "put_auth sets the authorization header on the request" do
     Req.Test.expect(__MODULE__, fn conn ->
-      assert {"authorization", "Discogs token=request-token"} in conn.req_headers
-      refute {"authorization", "Discogs token=global-token"} in conn.req_headers
+      assert {"authorization", "Discogs token=my-token"} in conn.req_headers
       Req.Test.json(conn, %{"id" => 1})
     end)
 
     assert {:ok, %{"id" => 1}} =
              Request.get("/artists/1")
-             |> Request.put_auth(Auth.user_token("request-token"))
+             |> Request.put_auth(Authorization.for_user_token("my-token"))
+             |> Request.execute(& &1)
+  end
+
+  test "no auth header when auth is nil" do
+    Req.Test.expect(__MODULE__, fn conn ->
+      refute Enum.any?(conn.req_headers, fn {k, _} -> k == "authorization" end)
+      Req.Test.json(conn, %{"id" => 1})
+    end)
+
+    assert {:ok, %{"id" => 1}} =
+             Request.get("/artists/1")
              |> Request.execute(& &1)
   end
 end

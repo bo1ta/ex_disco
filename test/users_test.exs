@@ -22,14 +22,12 @@ defmodule ExDisco.UsersTest do
     end
 
     test "returns error when no identity exists" do
-      stub_error(401)
-
-      assert {:error, %Error{type: :unauthorized, message: "You must authenticate" <> _}} =
-               Users.get_identity()
+      assert {:error, %Error{type: :unauthorized, message: "Authorization must not be nil."}} =
+               Users.get_identity(nil)
     end
   end
 
-  describe "get_profile/2" do
+  describe "get_profile/1,2" do
     test "maps profile fields" do
       stub_response(fixture("profile"))
       assert {:ok, %Profile{username: "rodneyfool"}} = Users.get_profile("rodneyfool")
@@ -42,6 +40,16 @@ defmodule ExDisco.UsersTest do
       end)
 
       assert {:ok, %Profile{}} = Users.get_profile("rodneyfool")
+    end
+
+    test "hits the correct endpoint with auth when auth is provided" do
+      stub_response(fixture("profile"), fn conn ->
+        assert conn.method == "GET"
+        assert conn.request_path == "/users/rodneyfool"
+        assert {"authorization", "Discogs token=test-token"} in conn.req_headers
+      end)
+
+      assert {:ok, %Profile{}} = Users.get_profile(user_token(), "rodneyfool")
     end
 
     test "returns error when not found" do
@@ -60,15 +68,20 @@ defmodule ExDisco.UsersTest do
 
       assert {:ok, %Profile{}} =
                Users.update_profile(
+                 user_token(),
                  "memory",
-                 %{location: "Paris", curr_abbr: "GBP"},
-                 user_token()
+                 %{location: "Paris", curr_abbr: "GBP"}
                )
     end
 
-    test "returns error for invalid currency" do
+    test "returns unauthorized error for nil authorization" do
+      assert {:error, %Error{type: :unauthorized}} =
+               Users.update_profile(nil, "memory", %{curr_abbr: "GBP"})
+    end
+
+    test "returns invalid argument error for invalid params" do
       assert {:error, %Error{type: :invalid_argument}} =
-               Users.update_profile("memory", %{curr_abbr: "TEST"})
+               Users.update_profile(user_token(), "memory", %{curr_abbr: "TEST"})
     end
   end
 end

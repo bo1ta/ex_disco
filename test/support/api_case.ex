@@ -63,17 +63,17 @@ defmodule ExDisco.ApiCase do
         stub_response(ExDisco.ApiCase.fixture("error_response"), status)
       end
 
-      # Returns a %UserToken{} for use in authenticated calls.
+      # Returns an %Authorization{type: :user_token} for use in authenticated calls.
       # The default token is "test-token" — override when the specific value matters.
       #
       #     Users.get_identity(user_token())
       #     Users.get_identity(user_token("real-personal-token"))
       #
       defp user_token(token \\ "test-token") do
-        ExDisco.Auth.user_token(token)
+        ExDisco.Auth.Authorization.for_user_token(token)
       end
 
-      # Returns an %OAuthCredentials{} for use in per-user OAuth calls.
+      # Returns an %Authorization{type: :oauth} for use in per-user OAuth calls.
       # Defaults to predictable test values — override only when the specific values matter.
       #
       #     Users.get_identity(oauth_credentials())
@@ -85,7 +85,7 @@ defmodule ExDisco.ApiCase do
              token \\ "test-token",
              token_secret \\ "test-token-secret"
            ) do
-        ExDisco.Auth.oauth_credentials(consumer_key, consumer_secret, token, token_secret)
+        ExDisco.Auth.Authorization.for_oauth(consumer_key, consumer_secret, token, token_secret)
       end
     end
   end

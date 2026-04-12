@@ -43,8 +43,7 @@ defmodule ExDisco.MixProject do
       groups_for_modules: [
         Authentication: [
           ExDisco.Auth,
-          ExDisco.Auth.UserToken,
-          ExDisco.Auth.OAuthCredentials,
+          ExDisco.Auth.Authorization,
           ExDisco.Auth.RequestToken
         ],
         Resources: [

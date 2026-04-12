@@ -45,6 +45,7 @@ defmodule ExDisco.Request do
   """
 
   alias ExDisco.{API, Error, Page}
+  alias ExDisco.Auth.Authorization
 
   @type method :: :get | :post | :put | :delete
 
@@ -60,7 +61,7 @@ defmodule ExDisco.Request do
           method: method(),
           path: String.t(),
           query: keyword(),
-          auth: ExDisco.Auth.t(),
+          auth: Authorization.t() | nil,
           body: map() | nil
         }
 
@@ -154,8 +155,8 @@ defmodule ExDisco.Request do
       iex> Request.get("/users/me") |> Request.put_auth(token)
       %ExDisco.Request{auth: %ExDisco.Auth.UserToken{token: "my_token"}, ...}
   """
-  @spec put_auth(t(), ExDisco.Auth.t()) :: t()
-  def put_auth(%__MODULE__{} = request, auth) do
+  @spec put_auth(t(), Authorization.t()) :: t()
+  def put_auth(%__MODULE__{} = request, %Authorization{} = auth) do
     %{request | auth: auth}
   end
 

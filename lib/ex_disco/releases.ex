@@ -22,9 +22,9 @@ defmodule ExDisco.Releases do
   See `ExDisco.Releases.Release` for the complete data structure.
   """
 
-  alias ExDisco.Releases.UserRating
-  alias ExDisco.{API, Error, Request}
-  alias ExDisco.Releases.{Release, Rating, ReleaseStats}
+  alias ExDisco.{Request, Error}
+  alias ExDisco.Auth.Authorization
+  alias ExDisco.Releases.{Release, Rating, ReleaseStats, UserRating}
 
   @doc """
   Fetch a release by Discogs ID.
@@ -110,12 +110,13 @@ defmodule ExDisco.Releases do
   @doc """
   Updates the release’s rating for a given user and returns the updated user rating.
 
-  Requires authentication (personal token or OAuth).
+  Requires authentication (personal token or OAuth). Pass the auth as the first
+  argument for easy piping.
 
   ## Examples
 
-      iex> creds = ExDisco.Auth.oauth_credentials(...)
-      iex> ExDisco.Releases.put_user_rating(249504, "someusername", 5, creds)
+      iex> auth = ExDisco.Auth.Authorization.for_user_token("my_token")
+      iex> ExDisco.Releases.put_user_rating(auth, 249504, "someusername", 5)
       {:ok,
       %ExDisco.Releases.UserRating{
         username: "someusername",
@@ -123,40 +124,37 @@ defmodule ExDisco.Releases do
         rating: 5
       }}
   """
-  @spec put_user_rating(pos_integer(), String.t(), pos_integer(), API.auth()) ::
+  @spec put_user_rating(Authorization.t(), pos_integer(), String.t(), pos_integer()) ::
           {:ok, UserRating.t()} | {:error, Error.t()}
-  def put_user_rating(release_id, username, rating, auth \\ nil)
-
-  def put_user_rating(release_id, username, rating, auth)
-      when is_integer(release_id) and release_id > 0
-      when is_integer(rating) and rating in 1..5 do
+  def put_user_rating(%Authorization{} = auth, release_id, username, rating)
+      when is_integer(release_id) and release_id > 0 and is_integer(rating) and rating in 1..5 do
     Request.put("/releases/#{release_id}/rating/#{username}")
     |> Request.put_auth(auth)
     |> Request.put_body(%{release_id: release_id, username: username, rating: rating})
     |> Request.execute(&UserRating.from_api/1)
   end
 
-  def put_user_rating(_, _, rating, _) when rating not in 1..5,
+  def put_user_rating(_, _, _, rating) when is_integer(rating) and rating not in 1..5,
     do: Error.invalid_argument("rating must be between 1 and 5")
 
   def put_user_rating(_, _, _, _),
     do: Error.invalid_argument("release_id must be a positive integer")
 
   @doc """
-  Deletes the release’s rating for a given user
+  Deletes the release’s rating for a given user.
 
-  Requires authentication (personal token or OAuth).
+  Requires authentication (personal token or OAuth). Pass the auth as the first
+  argument for easy piping.
 
   ## Examples
 
-      iex> creds = ExDisco.Auth.oauth_credentials(...)
-      iex> ExDisco.Releases.delete_user_rating(249504, "someusername", creds)
+      iex> auth = ExDisco.Auth.Authorization.for_user_token("my_token")
+      iex> ExDisco.Releases.delete_user_rating(auth, 249504, "someusername")
       :ok
   """
-  @spec delete_user_rating(pos_integer(), String.t(), API.auth()) :: :ok | {:error, Error.t()}
-  def delete_user_rating(release_id, username, auth \\ nil)
-
-  def delete_user_rating(release_id, username, auth)
+  @spec delete_user_rating(Authorization.t(), pos_integer(), String.t()) ::
+          :ok | {:error, Error.t()}
+  def delete_user_rating(%Authorization{} = auth, release_id, username)
       when is_integer(release_id) and release_id > 0 do
     with {:ok, _} <-
            Request.delete("/releases/#{release_id}/rating/#{username}")

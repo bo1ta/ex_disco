@@ -31,13 +31,11 @@ defmodule ExDisco.Config do
         user_agent: "my_app/1.0.0 (+https://github.com/example/my_app)",
         user_token: System.fetch_env!("DISCOGS_TOKEN")
 
-  Then use the configuration in your application:
+  Then read the raw token string for building an authorization:
 
-      token = ExDisco.Config.auth()
-      # token is an ExDisco.Auth.UserToken or nil
+      token = ExDisco.Config.user_token()
+      auth = ExDisco.Auth.Authorization.for_user_token(token)
   """
-
-  alias ExDisco.Auth
 
   @base_url "https://api.discogs.com"
   @default_user_agent "ex_disco/0.1.0"
@@ -96,24 +94,17 @@ defmodule ExDisco.Config do
   def consumer_secret, do: resolve(:consumer_secret)
 
   @doc """
-  Returns the configured authentication, or nil if not configured.
-
-  If a personal token is configured, returns a UserToken. Otherwise returns nil.
+  Returns the configured personal token string, or nil if not configured.
 
   ## Examples
 
-      iex> ExDisco.Config.auth()
-      %ExDisco.Auth.UserToken{token: "..."}
+      iex> ExDisco.Config.user_token()
+      "your_token_string"
 
-      iex> ExDisco.Config.auth()
+      iex> ExDisco.Config.user_token()
       nil
   """
-  def auth do
-    case resolve(:user_token) do
-      nil -> nil
-      token -> Auth.user_token(token)
-    end
-  end
+  def user_token, do: resolve(:user_token)
 
   @doc """
   Returns extra options for the Req HTTP client, or an empty list.

@@ -76,4 +76,8 @@ defmodule ExDisco.Error do
   def invalid_argument(message \\ "Invalid argument") do
     {:error, %__MODULE__{type: :invalid_argument, message: message}}
   end
+
+  def auth_required() do
+    {:error, %__MODULE__{type: :unauthorized, message: "Authorization must not be nil."}}
+  end
 end

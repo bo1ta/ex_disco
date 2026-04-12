@@ -231,7 +231,7 @@ defmodule ExDisco.ReleasesTest do
         assert {"authorization", "Discogs token=test-token"} in conn.req_headers
       end)
 
-      assert :ok = Releases.delete_user_rating(249_504, "memory", user_token())
+      assert :ok = Releases.delete_user_rating(user_token(), 249_504, "memory")
     end
   end
 end

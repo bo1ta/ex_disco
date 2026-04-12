@@ -1,12 +1,10 @@
 defmodule ExDisco.API do
   @moduledoc false
 
-  alias ExDisco.Auth.{OAuthCredentials, UserToken}
+  alias ExDisco.Auth.Authorization
   alias ExDisco.{Config, Error}
 
-  @type auth :: UserToken.t() | OAuthCredentials.t() | nil
-
-  @spec get(String.t(), keyword(), auth()) ::
+  @spec get(String.t(), keyword(), Authorization.t() | nil) ::
           {:ok, Req.Response.t()} | {:error, Exception.t()}
   def get(endpoint, query, auth \\ nil) do
     endpoint
@@ -17,7 +15,7 @@ defmodule ExDisco.API do
       {:error, exception}
   end
 
-  @spec post(String.t(), term(), auth()) ::
+  @spec post(String.t(), term(), Authorization.t() | nil) ::
           {:ok, Req.Response.t()} | {:error, Exception.t()}
   def post(endpoint, body, auth \\ nil) do
     endpoint
@@ -28,7 +26,7 @@ defmodule ExDisco.API do
       {:error, exception}
   end
 
-  @spec put(String.t(), term(), auth()) ::
+  @spec put(String.t(), term(), Authorization.t() | nil) ::
           {:ok, Req.Response.t()} | {:error, Exception.t()}
   def put(endpoint, body, auth \\ nil) do
     endpoint
@@ -39,7 +37,7 @@ defmodule ExDisco.API do
       {:error, exception}
   end
 
-  @spec delete(String.t(), auth()) ::
+  @spec delete(String.t(), Authorization.t() | nil) ::
           {:ok, Req.Response.t()} | {:error, Exception.t()}
   def delete(endpoint, auth) do
     endpoint
@@ -73,9 +71,14 @@ defmodule ExDisco.API do
   defp build_request(endpoint, method, query, body, auth) do
     url = Config.base_url() <> endpoint
 
+    auth_header = Authorization.to_header(auth, method, url, query)
+
     headers =
-      [{"user-agent", Config.user_agent()}]
-      |> maybe_put_auth(auth || Config.auth(), method, url, query)
+      if auth_header do
+        [{"user-agent", Config.user_agent()}, auth_header]
+      else
+        [{"user-agent", Config.user_agent()}]
+      end
 
     Req.new(
       Keyword.merge(
@@ -87,43 +90,6 @@ defmodule ExDisco.API do
         json: body
       )
     )
-  end
-
-  defp maybe_put_auth(headers, %UserToken{token: token}, _method, _url, _query) do
-    [{"authorization", "Discogs token=#{token}"} | headers]
-  end
-
-  defp maybe_put_auth(
-         headers,
-         %OAuthCredentials{
-           consumer_key: consumer_key,
-           consumer_secret: consumer_secret,
-           token: token,
-           token_secret: token_secret
-         },
-         method,
-         url,
-         query
-       ) do
-    credentials =
-      OAuther.credentials(
-        consumer_key: consumer_key,
-        consumer_secret: consumer_secret,
-        token: token,
-        token_secret: token_secret
-      )
-
-    signed = OAuther.sign(method |> to_string() |> String.upcase(), url, query, credentials)
-    {header_key, header_value} = oauth_header(signed)
-    [{header_key, header_value} | headers]
-  end
-
-  defp maybe_put_auth(headers, nil, _method, _url, _query), do: headers
-
-  defp oauth_header(signed) do
-    {{header_key, header_value}, _params} = OAuther.header(signed)
-
-    {header_key, header_value}
   end
 
   defp extract_message(%{"message" => message}, _status) when is_binary(message), do: message
