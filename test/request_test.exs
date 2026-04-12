@@ -1,6 +1,8 @@
-defmodule do
+defmodule ExDisco.RequestTest do
   use ExDisco.ApiCase, async: false
 
+  alias ExDisco.Auth
+  alias ExDisco.Auth.UserToken
   alias ExDisco.Request
 
   test "request builder can override app-configured auth per request" do
@@ -17,8 +19,7 @@ defmodule do
     end)
 
     assert {:ok, %{"id" => 1}} =
-             Request.new()
-             |> Request.path("/artists/1")
+             Request.get("/artists/1")
              |> Request.put_auth(Auth.user_token("request-token"))
              |> Request.execute(& &1)
   end

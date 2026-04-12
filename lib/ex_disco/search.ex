@@ -14,6 +14,7 @@ defmodule ExDisco.Search do
           | :label
           | :album
           | :catno
+          | :type
           | :barcode
           | :format
           | :year
@@ -36,13 +37,15 @@ defmodule ExDisco.Search do
 
   ## Examples
 
-      ExDisco.Search.query(:artist, q: "Rhadoo")
-      ExDisco.Search.query(:label, q: "Fabric")
+      ExDisco.Search.query(type: :artist, q: "Rhadoo")
+      ExDisco.Search.query(type: :label, q: "Fabric")
 
   """
-  @spec query(query_type(), filters()) :: {:ok, [map()]} | {:error, Error.t()}
-  def query(type, filters) when is_atom(type) and is_list(filters) do
-    params = Keyword.put_new(filters, :type, Atom.to_string(type))
+  @spec query(filters()) :: {:ok, [map()]} | {:error, Error.t()}
+  def query(filters) when is_list(filters) do
+    params =
+      filters
+      |> Keyword.update(:type, nil, &if(is_atom(&1), do: Atom.to_string(&1), else: &1))
 
     Request.get("/database/search")
     |> Request.put_query(params)

@@ -1,0 +1,121 @@
+{
+  "id": 249504,
+  "title": "Never Gonna Give You Up",
+  "status": "Accepted",
+  "country": "UK",
+  "released": "1987",
+  "released_formatted": "1987",
+  "year": 1987,
+  "resource_url": "https://api.discogs.com/releases/249504",
+  "uri": "https://www.discogs.com/Rick-Astley-Never-Gonna-Give-You-Up/release/249504",
+  "thumb": "https://img.discogs.com/thumb.jpg",
+  "master_id": 96559,
+  "master_url": "https://api.discogs.com/masters/96559",
+  "data_quality": "Correct",
+  "lowest_price": 0.63,
+  "num_for_sale": 58,
+  "estimated_weight": 60,
+  "format_quantity": 1,
+  "date_added": "2004-04-30T08:10:05-07:00",
+  "date_changed": "2012-12-03T02:50:12-07:00",
+  "notes": "UK Release.",
+  "genres": ["Electronic", "Pop"],
+  "styles": ["Synth-pop"],
+  "series": [],
+  "identifiers": [
+    { "type": "Barcode", "value": "5012394144777" }
+  ],
+  "artists": [
+    {
+      "id": 72872,
+      "name": "Rick Astley",
+      "anv": "",
+      "role": "",
+      "join": "",
+      "tracks": "",
+      "resource_url": "https://api.discogs.com/artists/72872"
+    }
+  ],
+  "extraartists": [
+    {
+      "id": 20942,
+      "name": "Stock, Aitken & Waterman",
+      "anv": "Stock / Aitken / Waterman",
+      "role": "Producer, Written-By",
+      "join": "",
+      "tracks": "",
+      "resource_url": "https://api.discogs.com/artists/20942"
+    }
+  ],
+  "labels": [
+    {
+      "id": 895,
+      "name": "RCA",
+      "catno": "PB 41447",
+      "entity_type": "1",
+      "resource_url": "https://api.discogs.com/labels/895"
+    }
+  ],
+  "companies": [
+    {
+      "id": 82835,
+      "name": "BMG Records (UK) Ltd.",
+      "catno": "",
+      "entity_type": "13",
+      "entity_type_name": "Phonographic Copyright (p)",
+      "resource_url": "https://api.discogs.com/labels/82835"
+    }
+  ],
+  "formats": [
+    {
+      "name": "Vinyl",
+      "qty": "1",
+      "descriptions": ["7\"", "Single", "45 RPM"]
+    }
+  ],
+  "tracklist": [
+    {
+      "position": "A",
+      "title": "Never Gonna Give You Up",
+      "duration": "3:32",
+      "type_": "track"
+    },
+    {
+      "position": "B",
+      "title": "Never Gonna Give You Up (Instrumental)",
+      "duration": "3:30",
+      "type_": "track"
+    }
+  ],
+  "images": [
+    {
+      "type": "primary",
+      "uri": "https://img.discogs.com/primary.jpg",
+      "uri150": "https://img.discogs.com/primary_150.jpg",
+      "resource_url": "https://img.discogs.com/primary.jpg",
+      "width": 600,
+      "height": 600
+    }
+  ],
+  "videos": [
+    {
+      "uri": "https://www.youtube.com/watch?v=te2jJncBVG4",
+      "title": "Rick Astley - Never Gonna Give You Up (Extended Version)",
+      "description": "Rick Astley - Never Gonna Give You Up (Extended Version)",
+      "duration": 330,
+      "embed": true
+    }
+  ],
+  "community": {
+    "have": 252,
+    "want": 42,
+    "status": "Accepted",
+    "data_quality": "Correct",
+    "rating": { "average": 3.42, "count": 45 },
+    "submitter": {
+      "username": "memory",
+      "resource_url": "https://api.discogs.com/users/memory"
+    },
+    "contributors": []
+  }
+}

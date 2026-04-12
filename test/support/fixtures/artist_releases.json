@@ -1,0 +1,50 @@
+{
+  "pagination": {
+    "page": 1,
+    "pages": 1,
+    "per_page": 2,
+    "items": 2,
+    "urls": {
+      "last": "https://api.discogs.com/artists/263282/releases?page=2&per_page=50",
+      "next": "https://api.discogs.com/artists/263282/releases?page=2&per_page=50"
+    }
+  },
+  "releases": [
+    {
+      "id": 905102,
+      "status": "Accepted",
+      "type": "release",
+      "format": "4xFile, MP3, EP",
+      "label": "2LS 2 Dance",
+      "title": "Platonic Techno",
+      "resource_url": "https://api.discogs.com/releases/905102",
+      "role": "Main",
+      "artist": "Rhadoo",
+      "year": 2006,
+      "thumb": "",
+      "stats": {
+        "community": {
+          "in_wantlist": 63,
+          "in_collection": 32
+        }
+      }
+    },
+    {
+      "id": 82929,
+      "title": "Dor Mit Oru",
+      "type": "master",
+      "main_release": 1313797,
+      "artist": "Rhadoo",
+      "role": "Main",
+      "resource_url": "https://api.discogs.com/masters/82929",
+      "year": 2008,
+      "thumb": "",
+      "stats": {
+        "community": {
+          "in_wantlist": 888,
+          "in_collection": 567
+        }
+      }
+    }
+  ]
+}

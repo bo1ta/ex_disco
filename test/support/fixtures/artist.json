@@ -1,0 +1,28 @@
+{
+  "name": "Rhadoo",
+  "id": 263282,
+  "resource_url": "https://api.discogs.com/artists/263282",
+  "uri": "https://www.discogs.com/artist/263282-Rhadoo",
+  "releases_url": "https://api.discogs.com/artists/263282/releases",
+  "images": [
+    {
+      "type": "primary",
+      "uri": "https://img.discogs.com/primary.jpg",
+      "resource_url": "https://img.discogs.com/primary.jpg",
+      "uri150": "https://img.discogs.com/primary_150.jpg",
+      "width": 499,
+      "height": 683
+    }
+  ],
+  "realname": "Radu Bogdan Cilinca",
+  "profile": "Romanian techno/tech-house/minimal DJ, producer & remixer.\r\nCo-runs [l84566] with [a=Raresh] and [a=Pedro (8)].",
+  "namevariations": ["Bogdan Rhadoo", "Colorhadoo", "DJ Rhadoo"],
+  "aliases": [
+    {
+      "id": 989544,
+      "name": "Nea Marin",
+      "resource_url": "https://api.discogs.com/artists/989544"
+    }
+  ],
+  "data_quality": "Needs Vote"
+}

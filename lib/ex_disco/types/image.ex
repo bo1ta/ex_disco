@@ -16,4 +16,12 @@ defmodule ExDisco.Types.Image do
           width: pos_integer() | nil,
           height: pos_integer() | nil
         }
+
+  @doc "Extracts the primary image from the images list"
+  @spec get_primary_image(list(t())) :: t() | nil
+  def get_primary_image(images) when is_list(images) do
+    Enum.find(images, &(&1.type == "primary"))
+  end
+
+  def get_primary_image(_other), do: nil
 end

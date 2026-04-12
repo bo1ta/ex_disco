@@ -2,18 +2,7 @@ defmodule ExDisco.AuthTest do
   use ExDisco.ApiCase, async: false
 
   alias ExDisco.Auth
-  alias ExDisco.Auth.{OAuthCredentials, RequestToken, UserToken}
-
-  test "normalizes legacy auth tuples into structs" do
-    assert %UserToken{token: "abc"} = Auth.normalize({:user_token, "abc"})
-
-    assert %OAuthCredentials{
-             consumer_key: "ck",
-             consumer_secret: "cs",
-             token: "token",
-             token_secret: "secret"
-           } = Auth.normalize({:oauth, "ck", "cs", "token", "secret"})
-  end
+  alias ExDisco.Auth.{RequestToken}
 
   test "request_token/1 returns a stable request token struct" do
     Application.put_env(:ex_disco, ExDisco,

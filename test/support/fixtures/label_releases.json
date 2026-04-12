@@ -1,0 +1,36 @@
+{
+  "pagination": {
+    "page": 1,
+    "pages": 12,
+    "per_page": 50,
+    "items": 590,
+    "urls": {
+      "last": "https://api.discogs.com/labels/1/releases?page=12&per_page=50",
+      "next": "https://api.discogs.com/labels/1/releases?page=2&per_page=50"
+    }
+  },
+  "releases": [
+    {
+      "status": "Accepted",
+      "format": "CD, Comp, Mixed",
+      "catno": "!K7067cd",
+      "thumb": "https://i.discogs.com/V60lNnC3DxsCaNOabHjHbO5Xd6DIp6AnQHZCOPbra8w/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwMTgt/MTE3MTczMTgzMS5q/cGVn.jpeg",
+      "resource_url": "https://api.discogs.com/releases/1018",
+      "title": "Electro Boogie Vol 2 (The Throwdown)",
+      "id": 1018,
+      "year": 1998,
+      "artist": "Dave Clarke"
+    },
+    {
+      "status": "Accepted",
+      "format": "CD, Mixed, RP",
+      "catno": "K7071CD, !K7071cd",
+      "thumb": "https://i.discogs.com/AW3gz3RTecljLNZ9mURNxsJbWUUwjr4cgUQzJ32DNb8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI4MDEt/MTMzNTQ3MzY5Mi5q/cGVn.jpeg",
+      "resource_url": "https://api.discogs.com/releases/2801",
+      "title": "DJ-Kicks",
+      "id": 2801,
+      "year": 0,
+      "artist": "Andrea Parker"
+    }
+  ]
+}

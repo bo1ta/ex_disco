@@ -3,7 +3,7 @@ defmodule ExDisco.Artists do
   Discogs artist resource
   """
 
-  alias ExDisco.{Request, Search, Error}
+  alias ExDisco.{Request, Error}
   alias ExDisco.Artists.Artist
   alias ExDisco.Types.ReleaseSummary
 
@@ -19,13 +19,5 @@ defmodule ExDisco.Artists do
   def get_releases(id) when is_integer(id) and id > 0 do
     Request.get("/artists/#{id}/releases")
     |> Request.execute_collection("releases", &ReleaseSummary.from_api/1)
-  end
-
-  @doc "Searches for artists by filters and maps the results."
-  @spec search(Search.filters()) :: {:ok, [Artist.t()]} | {:error, Error.t()}
-  def search(filters) when is_list(filters) do
-    with {:ok, results} <- Search.query(:artist, filters) do
-      {:ok, Enum.map(results, &Artist.from_search_result/1)}
-    end
   end
 end
