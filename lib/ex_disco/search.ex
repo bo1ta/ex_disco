@@ -44,8 +44,7 @@ defmodule ExDisco.Search do
   def query(type, filters) when is_atom(type) and is_list(filters) do
     params = Keyword.put_new(filters, :type, Atom.to_string(type))
 
-    Request.new()
-    |> Request.path("/database/search")
+    Request.get("/database/search")
     |> Request.put_query(params)
     |> Request.execute_collection(& &1)
   end

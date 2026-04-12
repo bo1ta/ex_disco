@@ -1,21 +1,27 @@
 defmodule ExDisco.API do
   @moduledoc false
 
+  alias ExDisco.Auth.{OAuthCredentials, UserToken}
   alias ExDisco.{Config, Error}
 
-  @base_url "https://api.discogs.com"
-  @default_user_agent "ex_disco/0.1.0"
+  @type auth :: UserToken.t() | OAuthCredentials.t() | nil
 
-  @type method :: :get | :post
-  @type headers :: [{String.t(), String.t()}]
-  @type query :: keyword()
-  @type body :: term()
-
-  @spec request(method(), String.t(), headers(), query(), body()) ::
+  @spec get(String.t(), keyword(), auth()) ::
           {:ok, Req.Response.t()} | {:error, Exception.t()}
-  def request(method, endpoint, headers, query, body) do
-    method
-    |> build_request(endpoint, headers, query, body)
+  def get(endpoint, query, auth \\ nil) do
+    endpoint
+    |> build_request(:get, query, nil, auth)
+    |> Req.request()
+  rescue
+    exception in [Req.TransportError] ->
+      {:error, exception}
+  end
+
+  @spec post(String.t(), term(), auth()) ::
+          {:ok, Req.Response.t()} | {:error, Exception.t()}
+  def post(endpoint, body, auth \\ nil) do
+    endpoint
+    |> build_request(:post, [], body, auth)
     |> Req.request()
   rescue
     exception in [Req.TransportError] ->
@@ -42,18 +48,18 @@ defmodule ExDisco.API do
     }
   end
 
-  @spec build_request(method(), String.t(), headers(), query(), body()) :: Req.Request.t()
-  defp build_request(method, endpoint, headers, query, body) do
+  defp build_request(endpoint, method, query, body, auth) do
+    url = Config.base_url() <> endpoint
+
     headers =
-      headers
-      |> put_default_header("user-agent", Config.resolve(:user_agent, @default_user_agent))
-      |> maybe_put_auth(Config.resolve(:auth))
+      [{"user-agent", Config.user_agent()}]
+      |> maybe_put_auth(auth || Config.auth(), method, url, query)
 
     Req.new(
       Keyword.merge(
-        Config.resolve(:req_options, []),
+        Config.req_options(),
         method: method,
-        url: @base_url <> endpoint,
+        url: url,
         headers: headers,
         params: query,
         json: body
@@ -61,19 +67,42 @@ defmodule ExDisco.API do
     )
   end
 
-  defp put_default_header(headers, key, value) do
-    if Enum.any?(headers, fn {existing_key, _value} -> String.downcase(existing_key) == key end) do
-      headers
-    else
-      [{key, value} | headers]
-    end
+  defp maybe_put_auth(headers, %UserToken{token: token}, _method, _url, _query) do
+    [{"authorization", "Discogs token=#{token}"} | headers]
   end
 
-  defp maybe_put_auth(headers, {:user_token, token}) do
-    put_default_header(headers, "authorization", "Discogs token=#{token}")
+  defp maybe_put_auth(
+         headers,
+         %OAuthCredentials{
+           consumer_key: consumer_key,
+           consumer_secret: consumer_secret,
+           token: token,
+           token_secret: token_secret
+         },
+         method,
+         url,
+         query
+       ) do
+    credentials =
+      OAuther.credentials(
+        consumer_key: consumer_key,
+        consumer_secret: consumer_secret,
+        token: token,
+        token_secret: token_secret
+      )
+
+    signed = OAuther.sign(method |> to_string() |> String.upcase(), url, query, credentials)
+    {header_key, header_value} = oauth_header(signed)
+    [{header_key, header_value} | headers]
   end
 
-  defp maybe_put_auth(headers, nil), do: headers
+  defp maybe_put_auth(headers, nil, _method, _url, _query), do: headers
+
+  defp oauth_header(signed) do
+    {{header_key, header_value}, _params} = OAuther.header(signed)
+
+    {header_key, header_value}
+  end
 
   defp extract_message(%{"message" => message}, _status) when is_binary(message), do: message
   defp extract_message(_body, status), do: "Discogs request failed with status #{status}"

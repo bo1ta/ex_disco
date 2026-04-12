@@ -7,8 +7,7 @@ defmodule ExDisco.Request do
 
   ## Example
 
-      Request.new()
-      |> Request.path("/artists/123")
+      Request.get("/artists/123")
       |> Request.execute(&Artist.from_api/1)
 
   """
@@ -20,26 +19,26 @@ defmodule ExDisco.Request do
   defstruct method: :get,
             path: "",
             query: [],
-            headers: [],
+            auth: nil,
             body: nil
 
   @type t :: %__MODULE__{
-          method: atom(),
+          method: :get | :post,
           path: String.t(),
           query: keyword(),
-          headers: [{binary(), binary()}],
+          auth: API.auth(),
           body: term()
         }
 
   # --- Builder ---
 
-  @spec new() :: t()
-  def new, do: %__MODULE__{}
+  @doc "Construct a GET Request struct with the given path"
+  @spec get(String.t()) :: t()
+  def get(path), do: %__MODULE__{method: :get, path: path}
 
-  @spec method(t(), atom()) :: t()
-  def method(%__MODULE__{} = request, method) when is_atom(method) do
-    %{request | method: method}
-  end
+  @doc "Construct a POST Request struct with the given path"
+  @spec post(String.t()) :: t()
+  def post(path), do: %__MODULE__{method: :post, path: path}
 
   @spec path(t(), String.t()) :: t()
   def path(%__MODULE__{} = request, path) when is_binary(path) do
@@ -51,10 +50,9 @@ defmodule ExDisco.Request do
     %{request | query: request.query ++ query}
   end
 
-  @spec put_header(t(), binary(), binary()) :: t()
-  def put_header(%__MODULE__{} = request, key, value)
-      when is_binary(key) and is_binary(value) do
-    %{request | headers: [{key, value} | request.headers]}
+  @spec put_auth(t(), API.auth()) :: t()
+  def put_auth(%__MODULE__{} = request, auth) do
+    %{request | auth: auth}
   end
 
   # --- Executors ---
@@ -103,16 +101,23 @@ defmodule ExDisco.Request do
   # --- Private ---
 
   @spec exec(t()) :: response(map())
-  defp exec(%__MODULE__{} = request) do
-    case API.request(request.method, request.path, request.headers, request.query, request.body) do
-      {:ok, %Req.Response{status: status, body: body}} when status in 200..299 ->
-        {:ok, body}
+  defp exec(%__MODULE__{method: :get} = request) do
+    normalize(API.get(request.path, request.query, request.auth))
+  end
 
-      {:ok, %Req.Response{status: status, body: body}} ->
-        {:error, API.api_error(status, body)}
+  defp exec(%__MODULE__{method: :post} = request) do
+    normalize(API.post(request.path, request.body, request.auth))
+  end
 
-      {:error, exception} ->
-        {:error, API.transport_error(exception)}
-    end
+  defp normalize({:ok, %Req.Response{status: status, body: body}}) when status in 200..299 do
+    {:ok, body}
+  end
+
+  defp normalize({:ok, %Req.Response{status: status, body: body}}) do
+    {:error, API.api_error(status, body)}
+  end
+
+  defp normalize({:error, exception}) do
+    {:error, API.transport_error(exception)}
   end
 end
