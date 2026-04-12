@@ -110,11 +110,6 @@ defmodule ExDisco.Request do
   @spec delete(String.t()) :: t()
   def delete(path), do: %__MODULE__{method: :delete, path: path}
 
-  @spec path(t(), String.t()) :: t()
-  def path(%__MODULE__{} = request, path) when is_binary(path) do
-    %{request | path: path}
-  end
-
   @doc """
   Set the request body.
 
