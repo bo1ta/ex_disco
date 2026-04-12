@@ -1,6 +1,7 @@
 defmodule ExDisco.ReleasesTest do
   use ExDisco.ApiCase, async: false
 
+  alias ExDisco.Releases.UserRating
   alias ExDisco.{Releases, Error}
   alias ExDisco.Releases.{Community, Rating, ReleaseStats, Format, Release, Track, Video}
 
@@ -199,6 +200,38 @@ defmodule ExDisco.ReleasesTest do
       stub_response(fixture("release_rating"))
 
       assert {:ok, %Rating{count: 227, average: 3.82}} = Releases.get_rating(249_504)
+    end
+  end
+
+  describe "get_user_rating/2" do
+    test "hits the correct endpoint" do
+      stub_response(fixture("user_rating"), fn conn ->
+        assert conn.method == "GET"
+        assert conn.request_path == "/releases/249504/rating/memory"
+      end)
+
+      assert {:ok, %UserRating{}} = Releases.get_user_rating(249_504, "memory")
+    end
+
+    test "maps fields" do
+      stub_response(fixture("user_rating"))
+
+      assert {:ok, %UserRating{} = user_rating} = Releases.get_user_rating(249_504, "memory")
+      assert user_rating.username == "memory"
+      assert user_rating.release_id == 249_504
+      assert user_rating.rating == 5
+    end
+  end
+
+  describe "delete_user_rating/3" do
+    test "hits the correct endpoint with auth header" do
+      stub_response(%{}, fn conn ->
+        assert conn.method == "DELETE"
+        assert conn.request_path == "/releases/249504/rating/memory"
+        assert {"authorization", "Discogs token=test-token"} in conn.req_headers
+      end)
+
+      assert :ok = Releases.delete_user_rating(249_504, "memory", user_token())
     end
   end
 end

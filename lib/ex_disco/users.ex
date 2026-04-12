@@ -77,4 +77,36 @@ defmodule ExDisco.Users do
     |> Request.put_auth(auth)
     |> Request.execute(&Profile.from_api/1)
   end
+
+  @doc """
+  Update the authenticated user's profile.
+
+  Pass a map with only the fields you want to change.
+  Unset fields are omitted from the request and left unchanged on Discogs.
+
+  Requires authentication as the user being updated.
+
+  ## Examples
+
+      iex> update = %ExDisco.Users.ProfileUpdate{location: "Portland", curr_abbr: "USD"}
+      iex> ExDisco.Users.update_profile("vreon", update)
+      {:ok, %ExDisco.Users.Profile{location: "Portland", ...}}
+
+      iex> ExDisco.Users.update_profile("vreon", %ExDisco.Users.ProfileUpdate{curr_abbr: "FAKE"})
+      {:error, %ExDisco.Error{type: :invalid_argument, ...}}
+  """
+  @spec update_profile(String.t(), Profile.update(), ExDisco.Auth.t()) ::
+          {:ok, Profile.t()} | {:error, Error.t()}
+  def update_profile(username, params, auth \\ nil)
+
+  def update_profile(username, params, auth) when is_map(params) do
+    with :ok <- Profile.validate_update(params) do
+      Request.post("/users/#{username}")
+      |> Request.put_body(params)
+      |> Request.put_auth(auth)
+      |> Request.execute(&Profile.from_api/1)
+    end
+  end
+
+  def update_profile(_, _, _), do: Error.invalid_argument()
 end

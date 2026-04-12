@@ -45,6 +45,8 @@ defmodule ExDisco.Labels do
     |> Request.execute(&Label.from_api/1)
   end
 
+  def get(_), do: Error.invalid_argument("id must be a positive integer")
+
   @doc """
   Fetch releases published by a label.
 
@@ -61,4 +63,6 @@ defmodule ExDisco.Labels do
     Request.get("/labels/#{id}/releases")
     |> Request.execute_collection("releases", &ReleaseSummary.from_api/1)
   end
+
+  def get_releases(_), do: Error.invalid_argument("id must be a positive integer")
 end

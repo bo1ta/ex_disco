@@ -28,6 +28,28 @@ defmodule ExDisco.API do
       {:error, exception}
   end
 
+  @spec put(String.t(), term(), auth()) ::
+          {:ok, Req.Response.t()} | {:error, Exception.t()}
+  def put(endpoint, body, auth \\ nil) do
+    endpoint
+    |> build_request(:put, [], body, auth)
+    |> Req.request()
+  rescue
+    exception in [Req.TransportError] ->
+      {:error, exception}
+  end
+
+  @spec delete(String.t(), auth()) ::
+          {:ok, Req.Response.t()} | {:error, Exception.t()}
+  def delete(endpoint, auth) do
+    endpoint
+    |> build_request(:delete, [], nil, auth)
+    |> Req.request()
+  rescue
+    exception in [Req.TransportError] ->
+      {:error, exception}
+  end
+
   @spec api_error(integer(), term()) :: Error.t()
   def api_error(status, body) do
     %Error{

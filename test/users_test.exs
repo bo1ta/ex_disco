@@ -49,4 +49,26 @@ defmodule ExDisco.UsersTest do
       assert {:error, %Error{type: :not_found}} = Users.get_profile("rodneyfool")
     end
   end
+
+  describe "update_profile/3" do
+    test "hits the correct endpoint with auth header" do
+      stub_response(fixture("profile"), fn conn ->
+        assert conn.method == "POST"
+        assert conn.request_path == "/users/memory"
+        assert conn.body_params == %{"location" => "Paris", "curr_abbr" => "GBP"}
+      end)
+
+      assert {:ok, %Profile{}} =
+               Users.update_profile(
+                 "memory",
+                 %{location: "Paris", curr_abbr: "GBP"},
+                 user_token()
+               )
+    end
+
+    test "returns error for invalid currency" do
+      assert {:error, %Error{type: :invalid_argument}} =
+               Users.update_profile("memory", %{curr_abbr: "TEST"})
+    end
+  end
 end

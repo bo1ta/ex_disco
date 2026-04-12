@@ -22,7 +22,8 @@ defmodule ExDisco.Releases do
   See `ExDisco.Releases.Release` for the complete data structure.
   """
 
-  alias ExDisco.{Error, Request}
+  alias ExDisco.Releases.UserRating
+  alias ExDisco.{API, Error, Request}
   alias ExDisco.Releases.{Release, Rating, ReleaseStats}
 
   @doc """
@@ -45,6 +46,8 @@ defmodule ExDisco.Releases do
     |> Request.execute(&Release.from_api/1)
   end
 
+  def get(_), do: Error.invalid_argument("id must be a positive integer")
+
   @doc """
   Fetch statistics for a release (view counts, wants, haves).
 
@@ -62,6 +65,8 @@ defmodule ExDisco.Releases do
     |> Request.execute(&ReleaseStats.from_api/1)
   end
 
+  def get_stats(_), do: Error.invalid_argument("id must be a positive integer")
+
   @doc """
   Fetch the community rating for a release.
 
@@ -77,4 +82,90 @@ defmodule ExDisco.Releases do
     Request.get("/releases/#{id}/rating")
     |> Request.execute(&Rating.from_api/1)
   end
+
+  def get_rating(_), do: Error.invalid_argument("id must be a positive integer")
+
+  @doc """
+  Retrieves the release's rating for a given username.
+  If the user hasn't rated the release, then the rating will be 0.
+
+  ## Examples
+
+      iex> ExDisco.Releases.get_user_rating(249504, "someusername")
+      {:ok,
+      %ExDisco.Releases.UserRating{
+        username: "someusername",
+        release_id: 249504,
+        rating: 5
+      }}
+  """
+  @spec get_user_rating(pos_integer(), String.t()) :: {:ok, UserRating.t()} | {:error, Error.t()}
+  def get_user_rating(release_id, username) when is_integer(release_id) and release_id > 0 do
+    Request.get("/releases/#{release_id}/rating/#{username}")
+    |> Request.execute(&UserRating.from_api/1)
+  end
+
+  def get_user_rating(_, _), do: Error.invalid_argument("release_id must be a positive integer")
+
+  @doc """
+  Updates the release’s rating for a given user and returns the updated user rating.
+
+  Requires authentication (personal token or OAuth).
+
+  ## Examples
+
+      iex> creds = ExDisco.Auth.oauth_credentials(...)
+      iex> ExDisco.Releases.put_user_rating(249504, "someusername", 5, creds)
+      {:ok,
+      %ExDisco.Releases.UserRating{
+        username: "someusername",
+        release_id: 249504,
+        rating: 5
+      }}
+  """
+  @spec put_user_rating(pos_integer(), String.t(), pos_integer(), API.auth()) ::
+          {:ok, UserRating.t()} | {:error, Error.t()}
+  def put_user_rating(release_id, username, rating, auth \\ nil)
+
+  def put_user_rating(release_id, username, rating, auth)
+      when is_integer(release_id) and release_id > 0
+      when is_integer(rating) and rating in 1..5 do
+    Request.put("/releases/#{release_id}/rating/#{username}")
+    |> Request.put_auth(auth)
+    |> Request.put_body(%{release_id: release_id, username: username, rating: rating})
+    |> Request.execute(&UserRating.from_api/1)
+  end
+
+  def put_user_rating(_, _, rating, _) when rating not in 1..5,
+    do: Error.invalid_argument("rating must be between 1 and 5")
+
+  def put_user_rating(_, _, _, _),
+    do: Error.invalid_argument("release_id must be a positive integer")
+
+  @doc """
+  Deletes the release’s rating for a given user
+
+  Requires authentication (personal token or OAuth).
+
+  ## Examples
+
+      iex> creds = ExDisco.Auth.oauth_credentials(...)
+      iex> ExDisco.Releases.delete_user_rating(249504, "someusername", creds)
+      :ok
+  """
+  @spec delete_user_rating(pos_integer(), String.t(), API.auth()) :: :ok | {:error, Error.t()}
+  def delete_user_rating(release_id, username, auth \\ nil)
+
+  def delete_user_rating(release_id, username, auth)
+      when is_integer(release_id) and release_id > 0 do
+    with {:ok, _} <-
+           Request.delete("/releases/#{release_id}/rating/#{username}")
+           |> Request.put_auth(auth)
+           |> Request.execute() do
+      :ok
+    end
+  end
+
+  def delete_user_rating(_, _, _),
+    do: Error.invalid_argument("release_id must be a positive integer")
 end

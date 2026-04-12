@@ -2,8 +2,14 @@ defmodule ExDisco.Users.Profile do
   @moduledoc """
   Represents the user profile as returned by `/users/{username}`
   """
+  alias ExDisco.Error
 
   use ExDisco.Resource
+
+  @valid_currencies ~w(USD GBP EUR CAD AUD JPY CHF MXN BRL NZD SEK ZAR)
+
+  @typedoc "Supported currency codes for `curr_abbr`."
+  @type currency :: String.t()
 
   @enforce_keys [:id, :username, :resource_url, :uri]
   defstruct [
@@ -73,6 +79,31 @@ defmodule ExDisco.Users.Profile do
           seller_rating: float(),
           seller_rating_stars: pos_integer(),
           seller_num_ratings: pos_integer(),
-          curr_abbr: String.t()
+          curr_abbr: currency()
         }
+
+  @typedoc """
+  Fields accepted by `ExDisco.Users.update_profile/2,3`.
+
+  All fields are optional — only the keys you include will be updated.
+  `curr_abbr` must be one of: #{Enum.join(@valid_currencies, ", ")}.
+  """
+  @type update :: %{
+          optional(:name) => String.t(),
+          optional(:home_page) => String.t(),
+          optional(:location) => String.t(),
+          optional(:profile) => String.t(),
+          optional(:curr_abbr) => currency()
+        }
+
+  @doc """
+  Validates the map for the profile update
+  """
+  @spec validate_update(update()) :: :ok | {:error, Error.t()}
+  def validate_update(%{curr_abbr: curr_abbr})
+      when curr_abbr not in @valid_currencies do
+    Error.invalid_argument("curr_abbr must be one of: #{Enum.join(@valid_currencies, ", ")}")
+  end
+
+  def validate_update(_), do: :ok
 end

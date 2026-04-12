@@ -46,6 +46,8 @@ defmodule ExDisco.Request do
 
   alias ExDisco.{API, Error, Page}
 
+  @type method :: :get | :post | :put | :delete
+
   @type response(value) :: {:ok, value} | {:error, Error.t()}
 
   defstruct method: :get,
@@ -55,11 +57,11 @@ defmodule ExDisco.Request do
             body: nil
 
   @type t :: %__MODULE__{
-          method: :get | :post,
+          method: method(),
           path: String.t(),
           query: keyword(),
           auth: ExDisco.Auth.t(),
-          body: term()
+          body: map() | nil
         }
 
   # --- Builder ---
@@ -86,9 +88,46 @@ defmodule ExDisco.Request do
   @spec post(String.t()) :: t()
   def post(path), do: %__MODULE__{method: :post, path: path}
 
+  @doc """
+  Construct a PUT request to the given path.
+
+  ## Examples
+
+      iex> Request.put("/releases/249504/rating/memory")
+      %ExDisco.Request{method: :put, path: "/releases/249504/rating/memory", query: [], auth: nil}
+  """
+  @spec put(String.t()) :: t()
+  def put(path), do: %__MODULE__{method: :put, path: path}
+
+  @doc """
+  Construct a DELETE request to the given path.
+
+  ## Examples
+
+      iex> Request.delete("/releases/249504/rating/memory")
+      %ExDisco.Request{method: :delete, path: "/releases/249504/rating/memory", query: [], auth: nil}
+  """
+  @spec delete(String.t()) :: t()
+  def delete(path), do: %__MODULE__{method: :delete, path: path}
+
   @spec path(t(), String.t()) :: t()
   def path(%__MODULE__{} = request, path) when is_binary(path) do
     %{request | path: path}
+  end
+
+  @doc """
+  Set the request body.
+
+  Used for POST and PUT requests that send a JSON body to the API.
+
+  ## Examples
+
+      iex> Request.post("/users/me") |> Request.put_body(%{location: "Portland"})
+      %ExDisco.Request{method: :post, body: %{location: "Portland"}, ...}
+  """
+  @spec put_body(t(), map()) :: t()
+  def put_body(%__MODULE__{} = request, body) when is_map(body) do
+    %{request | body: body}
   end
 
   @doc """
@@ -126,6 +165,21 @@ defmodule ExDisco.Request do
   end
 
   # --- Executors ---
+
+  @doc """
+  Execute the request and return the body response.
+
+  Sends the request to the Discogs API.
+
+  ## Examples
+
+      iex> Request.delete("/releases/1/rating/memory")
+      iex> |> Request.put_auth(auth)
+      iex> |> Request.execute()
+      {:ok, %{...}}
+  """
+  @spec execute(t()) :: response(map())
+  def execute(%__MODULE__{} = request), do: exec(request)
 
   @doc """
   Execute the request and map the response to a single value.
@@ -220,6 +274,14 @@ defmodule ExDisco.Request do
 
   defp exec(%__MODULE__{method: :post} = request) do
     normalize(API.post(request.path, request.body, request.auth))
+  end
+
+  defp exec(%__MODULE__{method: :put} = request) do
+    normalize(API.put(request.path, request.body, request.auth))
+  end
+
+  defp exec(%__MODULE__{method: :delete} = request) do
+    normalize(API.delete(request.path, request.auth))
   end
 
   defp normalize({:ok, %Req.Response{status: status, body: body}}) when status in 200..299 do

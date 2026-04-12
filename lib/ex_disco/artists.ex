@@ -45,6 +45,8 @@ defmodule ExDisco.Artists do
     |> Request.execute(&Artist.from_api/1)
   end
 
+  def get(_), do: Error.invalid_argument("id must be a positive integer")
+
   @doc """
   Fetch releases (albums, EPs, singles) by an artist.
 
@@ -61,4 +63,6 @@ defmodule ExDisco.Artists do
     Request.get("/artists/#{id}/releases")
     |> Request.execute_collection("releases", &ReleaseSummary.from_api/1)
   end
+
+  def get_releases(_), do: Error.invalid_argument("id must be a positive integer")
 end
