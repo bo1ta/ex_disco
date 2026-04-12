@@ -25,7 +25,12 @@ defmodule ExDisco.Config do
   def consumer_secret, do: resolve(:consumer_secret)
 
   @doc "Returns the resolved Auth."
-  def auth, do: resolve(:auth) |> Auth.normalize()
+  def auth do
+    case resolve(:user_token) do
+      nil -> nil
+      token -> Auth.user_token(token)
+    end
+  end
 
   @doc "Returns extra Req options, mainly for tests."
   def req_options, do: resolve(:req_options, [])

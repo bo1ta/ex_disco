@@ -3,6 +3,8 @@ defmodule ExDisco.Releases.Format do
   A physical or digital format of a release (e.g. Vinyl 7\", CD, Digital Media).
   """
 
+  use ExDisco.Resource
+
   @enforce_keys [:name]
   defstruct [:name, :qty, descriptions: []]
 
@@ -12,7 +14,7 @@ defmodule ExDisco.Releases.Format do
           descriptions: [String.t()]
         }
 
-  @spec from_api(map()) :: t()
+  @impl ExDisco.Resource
   def from_api(data) do
     %__MODULE__{
       name: data["name"],
@@ -20,8 +22,4 @@ defmodule ExDisco.Releases.Format do
       descriptions: data["descriptions"] || []
     }
   end
-
-  @spec from_api_list([map()] | nil) :: [t()]
-  def from_api_list(data) when is_list(data), do: Enum.map(data, &from_api/1)
-  def from_api_list(_), do: []
 end

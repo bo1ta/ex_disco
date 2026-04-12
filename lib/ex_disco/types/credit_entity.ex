@@ -6,6 +6,8 @@ defmodule ExDisco.Types.CreditEntity do
   they share the same shape, with `entity_type_name` present only on companies.
   """
 
+  use ExDisco.Resource
+
   @enforce_keys [:id, :name]
   defstruct [:id, :name, :catno, :entity_type, :entity_type_name, :resource_url]
 
@@ -18,22 +20,15 @@ defmodule ExDisco.Types.CreditEntity do
           resource_url: String.t() | nil
         }
 
-  @spec from_api(map()) :: t()
+  @impl ExDisco.Resource
   def from_api(data) do
     %__MODULE__{
       id: data["id"],
       name: data["name"],
-      catno: presence(data["catno"]),
+      catno: data["catno"],
       entity_type: data["entity_type"],
       entity_type_name: data["entity_type_name"],
       resource_url: data["resource_url"]
     }
   end
-
-  @spec from_api_list([map()] | nil) :: [t()]
-  def from_api_list(data) when is_list(data), do: Enum.map(data, &from_api/1)
-  def from_api_list(_), do: []
-
-  defp presence(""), do: nil
-  defp presence(value), do: value
 end

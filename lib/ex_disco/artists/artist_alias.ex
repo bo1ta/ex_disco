@@ -3,6 +3,8 @@ defmodule ExDisco.Artists.ArtistAlias do
   Discogs artist alias struct
   """
 
+  use ExDisco.Resource
+
   @enforce_keys [:id, :name]
   defstruct [:id, :name, :resource_url]
 
@@ -11,13 +13,4 @@ defmodule ExDisco.Artists.ArtistAlias do
           name: String.t(),
           resource_url: String.t() | nil
         }
-
-  @spec from_api(map()) :: t()
-  def from_api(data) do
-    %__MODULE__{
-      id: data["id"],
-      name: data["name"],
-      resource_url: data["resource_url"]
-    }
-  end
 end

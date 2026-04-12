@@ -3,6 +3,8 @@ defmodule ExDisco.Releases.Track do
   A single entry in a release tracklist.
   """
 
+  use ExDisco.Resource
+
   @enforce_keys [:title]
   defstruct [:title, :position, :duration, :type]
 
@@ -13,20 +15,13 @@ defmodule ExDisco.Releases.Track do
           type: String.t() | nil
         }
 
-  @spec from_api(map()) :: t()
+  @impl ExDisco.Resource
   def from_api(data) do
     %__MODULE__{
       title: data["title"],
       position: data["position"],
-      duration: presence(data["duration"]),
+      duration: data["duration"],
       type: data["type_"]
     }
   end
-
-  @spec from_api_list([map()] | nil) :: [t()]
-  def from_api_list(data) when is_list(data), do: Enum.map(data, &from_api/1)
-  def from_api_list(_), do: []
-
-  defp presence(""), do: nil
-  defp presence(value), do: value
 end

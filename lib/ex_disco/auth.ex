@@ -26,16 +26,6 @@ defmodule ExDisco.Auth do
   def normalize(%UserToken{} = auth), do: auth
   def normalize(%OAuthCredentials{} = auth), do: auth
 
-  def normalize({:user_token, token}) when is_binary(token) do
-    %UserToken{token: token}
-  end
-
-  def normalize({:oauth, consumer_key, consumer_secret, token, token_secret})
-      when is_binary(consumer_key) and is_binary(consumer_secret) and is_binary(token) and
-             is_binary(token_secret) do
-    oauth_credentials(consumer_key, consumer_secret, token, token_secret)
-  end
-
   def normalize(other), do: other
 
   @doc "Creates a new UserToken struct given a token string."

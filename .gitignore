@@ -21,3 +21,6 @@ ex_disco-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Local secrets — copy config/config.secret.example.exs and fill in your credentials.
+/config/config.secret.exs

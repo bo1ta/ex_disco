@@ -6,6 +6,8 @@ defmodule ExDisco.Types.ReleaseSummary do
   but not the full details (tracklist, credits, etc.) found on a full release page.
   """
 
+  use ExDisco.Resource
+
   @enforce_keys [:id, :title]
   defstruct [
     :id,
@@ -38,23 +40,4 @@ defmodule ExDisco.Types.ReleaseSummary do
           resource_url: String.t() | nil,
           main_release: pos_integer() | nil
         }
-
-  @spec from_api(map()) :: t()
-  def from_api(data) do
-    %__MODULE__{
-      id: data["id"],
-      title: data["title"],
-      artist: data["artist"],
-      type: data["type"],
-      role: data["role"],
-      status: data["status"],
-      format: data["format"],
-      label: data["label"],
-      catno: data["catno"],
-      year: data["year"],
-      thumb: data["thumb"],
-      resource_url: data["resource_url"],
-      main_release: data["main_release"]
-    }
-  end
 end
