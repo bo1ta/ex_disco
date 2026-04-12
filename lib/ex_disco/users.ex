@@ -88,11 +88,10 @@ defmodule ExDisco.Users do
 
   ## Examples
 
-      iex> update = %ExDisco.Users.ProfileUpdate{location: "Portland", curr_abbr: "USD"}
-      iex> ExDisco.Users.update_profile("vreon", update)
+      iex> ExDisco.Users.update_profile("vreon", %{location: "Portland",curr_abbr: "USD"}, auth)
       {:ok, %ExDisco.Users.Profile{location: "Portland", ...}}
 
-      iex> ExDisco.Users.update_profile("vreon", %ExDisco.Users.ProfileUpdate{curr_abbr: "FAKE"})
+      iex> ExDisco.Users.update_profile("vreon", %{curr_abbr: "FAKE"}, auth)
       {:error, %ExDisco.Error{type: :invalid_argument, ...}}
   """
   @spec update_profile(String.t(), Profile.update(), ExDisco.Auth.t()) ::
