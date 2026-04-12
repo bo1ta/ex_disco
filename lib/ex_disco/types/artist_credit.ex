@@ -1,7 +1,31 @@
 defmodule ExDisco.Types.ArtistCredit do
   @moduledoc """
-  An artist credit as it appears on a release — carries the role, join phrase,
-  and any name variation (ANV) used on that specific release.
+  An artist appearance on a release with role and formatting information.
+
+  Artist credits represent how an artist appears on a specific release, including
+  their role (vocals, guitar, producer, etc.), the name variation used (ANV), and
+  how their name is formatted relative to other credits (join phrase).
+
+  ## Fields
+
+  - `:id` — Artist's unique Discogs ID
+  - `:name` — Artist's primary name
+  - `:anv` — Alternate name variation (ANV) as it appears on this release
+  - `:role` — Artist's role (e.g., "Vocals", "Guitar", "Producer", "Mixing")
+  - `:join` — Joining phrase (e.g., " featuring ", " & ", " vs. ")
+  - `:tracks` — Specific tracks this credit applies to (if partial credit)
+  - `:resource_url` — Discogs API URL for this artist
+
+  ## Examples
+
+  Access artist credits on a release:
+
+      {:ok, release} = ExDisco.Releases.get(249504)
+
+  The join phrase is used to format display:
+
+      "Artist A" <> credit.join <> "Artist B"
+      # "Artist A featuring Artist B"
   """
 
   use ExDisco.Resource

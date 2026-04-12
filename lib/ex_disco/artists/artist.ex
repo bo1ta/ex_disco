@@ -1,6 +1,31 @@
 defmodule ExDisco.Artists.Artist do
   @moduledoc """
-  Discogs artist struct
+  A musician, group, or other artist from Discogs.
+
+  An Artist represents a person, group, or collective that has released music.
+  Each artist has basic information (name, profile) and can have multiple
+  aliases, name variations, and images.
+
+  ## Common Fields
+
+  - `:id` — Unique Discogs artist ID
+  - `:name` — Primary artist name (band name, artist stage name)
+  - `:real_name` — Real name if different from stage name
+  - `:profile` — Biography and description
+  - `:aliases` — List of ArtistAlias records (alternate names)
+  - `:name_variations` — List of alternate spellings
+  - `:images` — Cover art and other images
+  - `:data_quality` — Discogs data quality rating for this entry
+
+  ## Examples
+
+  Get artist information:
+
+      {:ok, artist} = ExDisco.Artists.get(1)
+      IO.inspect(artist.name)
+      # "Arif Mardin"
+      Enum.each(artist.aliases, &IO.inspect(&1.name))
+      # Alternate names...
   """
 
   alias ExDisco.Artists.ArtistAlias

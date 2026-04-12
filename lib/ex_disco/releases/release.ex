@@ -1,6 +1,56 @@
 defmodule ExDisco.Releases.Release do
   @moduledoc """
-  Full Discogs release object.
+  A specific release (pressing) of a recorded work from Discogs.
+
+  Unlike a Master (the abstract work), a Release is a concrete manifestation
+  with specific details: format (vinyl, CD, cassette), country, label, catalog
+  number, release date, and tracklist.
+
+  ## Key Fields
+
+  - `:id` — Unique Discogs release ID
+  - `:title` — Release title
+  - `:year` — Year of release
+  - `:released` — Release date (YYYY-MM-DD format)
+  - `:country` — Country of origin
+  - `:status` — Release status (Official, Bootleg, etc.)
+  - `:artists` — Main artists (list of ArtistCredit)
+  - `:extraartists` — Guest artists, producers, etc.
+  - `:tracklist` — List of Track structs (songs, movements)
+  - `:formats` — List of Format structs (Vinyl, CD, etc.)
+  - `:labels` — List of label entities
+  - `:genres` — Genre classifications
+  - `:styles` — Genre styles (e.g., "House", "Techno" within electronic)
+  - `:images` — Cover art and other images
+  - `:community` — Community stats (rating, wants, haves)
+  - `:master_id` — Link to the abstract master release (if applicable)
+  - `:notes` — Release notes and condition information
+
+  ## Nested Structures
+
+  Many fields are complex nested structs:
+  - `artists` — See `ExDisco.Types.ArtistCredit`
+  - `formats` — See `ExDisco.Releases.Format`
+  - `tracklist` — See `ExDisco.Releases.Track`
+  - `community` — See `ExDisco.Releases.Community`
+  - `images` — See `ExDisco.Types.Image`
+
+  ## Examples
+
+  Fetch and explore a release:
+
+      {:ok, release} = ExDisco.Releases.get(249504)
+      IO.inspect(release.title)
+      IO.inspect(release.year)
+
+      release.artists
+      |> Enum.map(&(&1.name))
+      |> Enum.each(&IO.inspect/1)
+
+      release.tracklist
+      |> Enum.each(&IO.inspect(&1.title))
+
+      IO.inspect(release.community.rating.average)
   """
 
   alias ExDisco.Releases.{Community, Format, Track, Video}

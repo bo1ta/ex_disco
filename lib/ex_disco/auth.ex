@@ -1,15 +1,90 @@
 defmodule ExDisco.Auth do
   @moduledoc """
-  Handles the Discogs OAuth 1.0a token exchange flow.
+  Authentication and authorization for the Discogs API.
 
-  Application-level credentials belong in config:
+  ## Authentication Methods
+
+  ExDisco supports two authentication approaches:
+
+  ### Personal Token (Simple)
+
+  For personal use and single-user applications, use a personal token from
+  https://www.discogs.com/settings/developers. Pass it per-request:
+
+      token = ExDisco.Auth.user_token("your_token")
+      Request.get("/users/me")
+      |> Request.put_auth(token)
+      |> Request.execute(...)
+
+  ### OAuth 1.0a (Multi-User)
+
+  For applications acting on behalf of multiple users, implement the full OAuth flow.
+
+  #### Step 1: Get Consumer Credentials
+
+  Register your application at https://www.discogs.com/settings/developers to obtain
+  consumer_key and consumer_secret. Store these in your config:
 
       config :ex_disco, ExDisco,
-        consumer_key: "consumer_key",
-        consumer_secret: "consumer_secret"
+        consumer_key: "your_consumer_key",
+        consumer_secret: "your_consumer_secret"
 
-  Then each end user goes through the OAuth flow and you store the returned
-  access credentials for that user.
+  #### Step 2: Request a Temporary Token
+
+  When a user logs in, request a temporary token that directs them to Discogs:
+
+      {:ok, request_token} = ExDisco.Auth.request_token("https://yourapp.com/callback")
+
+  Store the request_token temporarily (it's short-lived).
+
+  #### Step 3: Redirect User to Authorization
+
+  Direct the user to Discogs with:
+
+      url = ExDisco.Auth.authorize_url(request_token)
+      # Redirect user to this URL
+
+  Discogs returns them to your callback URL with an oauth_verifier parameter.
+
+  #### Step 4: Exchange for Long-Lived Credentials
+
+  Use the verifier to get permanent credentials:
+
+      {:ok, credentials} = ExDisco.Auth.access_token(request_token, verifier)
+
+  Store these credentials (consumer_key, consumer_secret, token, token_secret) for the user.
+
+  #### Step 5: Make Authenticated Requests
+
+  Use the stored credentials for future requests:
+
+      credentials = ExDisco.Auth.oauth_credentials(
+        consumer_key, consumer_secret, token, token_secret
+      )
+      Request.get("/users/me")
+      |> Request.put_auth(credentials)
+      |> Request.execute(...)
+
+  ## Examples
+
+  Get an artist with a personal token:
+
+      token = ExDisco.Auth.user_token("your_token")
+      {:ok, artist} = Request.get("/artists/1")
+        |> Request.put_auth(token)
+        |> Request.execute(&Artist.from_api/1)
+
+  Start OAuth flow:
+
+      {:ok, req_token} = ExDisco.Auth.request_token("https://yourapp.com/auth/callback")
+      url = ExDisco.Auth.authorize_url(req_token)
+      # Redirect user to url
+      # After user approves, Discogs redirects to callback with oauth_verifier
+
+  Complete OAuth:
+
+      {:ok, credentials} = ExDisco.Auth.access_token(req_token, oauth_verifier)
+      # Store credentials.token and credentials.token_secret for the user
   """
 
   alias ExDisco.API
@@ -20,7 +95,20 @@ defmodule ExDisco.Auth do
 
   @type t :: UserToken.t() | OAuthCredentials.t() | nil
 
-  @doc "Normalizes the credentials"
+  @doc """
+  Normalizes authentication credentials to a standard format.
+
+  Accepts UserToken, OAuthCredentials, or nil. Returns the credential
+  as-is if already in the correct format, or nil if passed nil.
+
+  ## Examples
+
+      iex> ExDisco.Auth.normalize(%ExDisco.Auth.UserToken{token: "abc"})
+      %ExDisco.Auth.UserToken{token: "abc"}
+
+      iex> ExDisco.Auth.normalize(nil)
+      nil
+  """
   @spec normalize(term()) :: t()
   def normalize(nil), do: nil
   def normalize(%UserToken{} = auth), do: auth
@@ -28,12 +116,32 @@ defmodule ExDisco.Auth do
 
   def normalize(other), do: other
 
-  @doc "Creates a new UserToken struct given a token string."
+  @doc """
+  Creates a UserToken for personal token authentication.
+
+  Simple wrapper for a personal token obtained from
+  https://www.discogs.com/settings/developers.
+
+  ## Examples
+
+      iex> token = ExDisco.Auth.user_token("my_token_abc123")
+      iex> token.token
+      "my_token_abc123"
+  """
   @spec user_token(String.t()) :: UserToken.t()
   def user_token(token), do: %UserToken{token: token}
 
   @doc """
-  Creates a new OAuthCredentials struct given the consumer_key, consumer_secret, token and token_secret
+  Creates an OAuthCredentials struct from OAuth credentials.
+
+  Use this after completing the OAuth 1.0a flow to wrap the obtained
+  credentials for authenticated requests.
+
+  ## Examples
+
+      iex> creds = ExDisco.Auth.oauth_credentials("key", "secret", "token", "token_secret")
+      iex> creds.token
+      "token"
   """
   @spec oauth_credentials(String.t(), String.t(), String.t(), String.t()) :: OAuthCredentials.t()
   def oauth_credentials(consumer_key, consumer_secret, token, token_secret) do
@@ -47,6 +155,14 @@ defmodule ExDisco.Auth do
 
   @doc """
   Requests a temporary OAuth token using configured consumer credentials.
+
+  The callback_url is where Discogs will redirect the user after they authorize
+  your app. This is Step 1 of the OAuth flow.
+
+  ## Examples
+
+      iex> ExDisco.Auth.request_token("https://myapp.com/auth/callback")
+      {:ok, %ExDisco.Auth.RequestToken{...}}
   """
   @spec request_token(String.t()) :: {:ok, RequestToken.t()} | {:error, ExDisco.Error.t()}
   def request_token(callback_url) when is_binary(callback_url) do
@@ -55,6 +171,14 @@ defmodule ExDisco.Auth do
 
   @doc """
   Requests a temporary OAuth token using explicit consumer credentials.
+
+  Use this if your consumer credentials are not in config. Same as request_token/1
+  but accepts credentials directly instead of reading from config.
+
+  ## Examples
+
+      iex> ExDisco.Auth.request_token("key", "secret", "https://myapp.com/auth/callback")
+      {:ok, %ExDisco.Auth.RequestToken{...}}
   """
   @spec request_token(String.t(), String.t(), String.t()) ::
           {:ok, RequestToken.t()} | {:error, ExDisco.Error.t()}
@@ -75,7 +199,24 @@ defmodule ExDisco.Auth do
   end
 
   @doc """
-  Returns the URL to redirect the user to for authorization.
+  Generates the URL to redirect the user to for authorization.
+
+  This is Step 2 of the OAuth flow. Redirect the user to this URL so they can
+  approve your app. After approval, Discogs redirects them back to your callback
+  URL with an oauth_verifier parameter.
+
+  Can accept either a RequestToken struct or a raw oauth_token string.
+
+  ## Examples
+
+      iex> token = %ExDisco.Auth.RequestToken{oauth_token: "temp_token"}
+      iex> url = ExDisco.Auth.authorize_url(token)
+      iex> String.starts_with?(url, "https://www.discogs.com/oauth/authorize")
+      true
+
+      iex> url = ExDisco.Auth.authorize_url("temp_token")
+      iex> String.contains?(url, "oauth_token=temp_token")
+      true
   """
   @spec authorize_url(String.t() | RequestToken.t()) :: String.t()
   def authorize_url(%RequestToken{oauth_token: oauth_token}), do: authorize_url(oauth_token)
@@ -84,8 +225,20 @@ defmodule ExDisco.Auth do
     do: @authorize_url <> "?oauth_token=" <> URI.encode_www_form(oauth_token)
 
   @doc """
-  Exchanges a request token and verifier for long-lived OAuth credentials using
-  configured consumer credentials.
+  Exchanges a verifier for permanent OAuth credentials using configured credentials.
+
+  This is Step 4 of the OAuth flow. After the user approves your app on Discogs
+  and is redirected back to your callback URL, you'll receive an oauth_verifier.
+  Use this function to exchange it for long-lived credentials.
+
+  Store the returned credentials (token and token_secret) for the user so you can
+  make authenticated requests on their behalf.
+
+  ## Examples
+
+      iex> req_token = %ExDisco.Auth.RequestToken{oauth_token: "...", oauth_token_secret: "..."}
+      iex> ExDisco.Auth.access_token(req_token, "verifier_from_discogs")
+      {:ok, %ExDisco.Auth.OAuthCredentials{...}}
   """
   @spec access_token(RequestToken.t(), String.t()) ::
           {:ok, OAuthCredentials.t()} | {:error, ExDisco.Error.t()}
@@ -100,8 +253,15 @@ defmodule ExDisco.Auth do
   end
 
   @doc """
-  Exchanges a verifier for long-lived OAuth credentials using explicit
-  consumer credentials.
+  Exchanges a verifier for permanent OAuth credentials using explicit credentials.
+
+  Same as access_token/2 but accepts credentials directly instead of reading
+  from config. Use when your consumer credentials are not in config.
+
+  ## Examples
+
+      iex> ExDisco.Auth.access_token("key", "secret", "req_token", "req_secret", "verifier")
+      {:ok, %ExDisco.Auth.OAuthCredentials{...}}
   """
   @spec access_token(String.t(), String.t(), String.t(), String.t(), String.t()) ::
           {:ok, OAuthCredentials.t()} | {:error, ExDisco.Error.t()}

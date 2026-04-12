@@ -37,7 +37,48 @@ defmodule ExDisco.MixProject do
 
   defp docs do
     [
-      main: "ExDisco"
+      main: "ExDisco",
+      source_url: "https://github.com/bo1ta/ex_disco",
+      source_ref: "main",
+      groups_for_modules: [
+        Authentication: [
+          ExDisco.Auth,
+          ExDisco.Auth.UserToken,
+          ExDisco.Auth.OAuthCredentials,
+          ExDisco.Auth.RequestToken
+        ],
+        Resources: [
+          ExDisco.Artists,
+          ExDisco.Releases,
+          ExDisco.Labels,
+          ExDisco.Users,
+          ExDisco.Search
+        ],
+        "Data Structures": [
+          ExDisco.Artists.Artist,
+          ExDisco.Artists.ArtistAlias,
+          ExDisco.Releases.Release,
+          ExDisco.Releases.Track,
+          ExDisco.Releases.Format,
+          ExDisco.Releases.Video,
+          ExDisco.Releases.Community,
+          ExDisco.Releases.ReleaseStats,
+          ExDisco.Releases.Rating,
+          ExDisco.Labels.Label,
+          ExDisco.Users.Profile,
+          ExDisco.Users.Identity,
+          ExDisco.Types.ReleaseSummary,
+          ExDisco.Types.ArtistCredit,
+          ExDisco.Types.CreditEntity,
+          ExDisco.Types.Image
+        ],
+        Utilities: [
+          ExDisco.Request,
+          ExDisco.Page,
+          ExDisco.Error,
+          ExDisco.Config
+        ]
+      ]
     ]
   end
 

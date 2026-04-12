@@ -3,8 +3,8 @@ defmodule ExDisco.Resource do
   Shared behaviour and default implementations for Discogs API resource structs.
 
   When all struct fields map 1:1 to API response keys, `use ExDisco.Resource`
-  provides a default `from_api/1` via `ExDisco.APIMapper` and a default
-  `from_api_list/1`. Both can be overridden when custom mapping is needed.
+  provides a default `from_api/1` that maps API response keys directly to struct
+  fields, and a default `from_api_list/1`. Both can be overridden when custom mapping is needed.
 
   ## Example — 1:1 mapping, no overrides needed
 

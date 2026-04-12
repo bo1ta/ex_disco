@@ -1,30 +1,54 @@
 defmodule ExDisco.Users do
   @moduledoc """
-  Discogs user resources.
-  """
+  Query user profile and identity information from Discogs.
 
-  alias ExDisco.{Error, Request, API}
-  alias ExDisco.Users.{Identity, Profile}
+  Users represent Discogs community members. You can retrieve basic identity
+  information about yourself (when authenticated) or public profile information
+  about any user.
 
-  @doc """
-  Retrieve basic information about the authenticated user.
-  You can use this resource to find out who you’re authenticated as, and it also doubles as a good sanity check to ensure that you’re using OAuth correctly.
+  ## Authentication
 
-  For more detailed information, make another request for the user’s Profile.
-
-  Requires authentication — either a personal token configured via `user_token`
-  in config, or OAuth credentials passed explicitly for per-user requests.
+  These functions require authentication. Pass either:
+  - `nil` to use the configured personal token
+  - A credential struct from `ExDisco.Auth` for per-user requests
 
   ## Examples
 
-      # Personal token (configured in config)
-      Users.get_identity()
+  Get your identity (requires authentication):
 
-      # OAuth credentials (per-user)
-      Users.get_identity(credentials)
+      {:ok, me} = ExDisco.Users.get_identity()
+      IO.inspect(me.username)
 
+  Get a user’s public profile:
+
+      {:ok, user} = ExDisco.Users.get_profile("someuser")
+      IO.inspect(user.location)
+
+  See `ExDisco.Users.Identity` and `ExDisco.Users.Profile` for data structures.
   """
-  @spec get_identity(API.auth()) :: {:ok, Identity.t()} | {:error, Error.t()}
+
+  alias ExDisco.{Error, Request}
+  alias ExDisco.Users.{Identity, Profile}
+
+  @doc """
+  Get the authenticated user’s identity.
+
+  Returns basic information about the currently authenticated user. This is a
+  good sanity check to verify you’re authenticated correctly. For more detailed
+  information, use `get_profile/2`.
+
+  Requires authentication (personal token or OAuth).
+
+  ## Examples
+
+      iex> ExDisco.Users.get_identity()
+      {:ok, %ExDisco.Users.Identity{username: "myself", ...}}
+
+      iex> creds = ExDisco.Auth.oauth_credentials(...)
+      iex> ExDisco.Users.get_identity(creds)
+      {:ok, %ExDisco.Users.Identity{username: "otheruser", ...}}
+  """
+  @spec get_identity(ExDisco.Auth.t()) :: {:ok, Identity.t()} | {:error, Error.t()}
   def get_identity(auth \\ nil)
 
   def get_identity(auth) do
@@ -34,12 +58,18 @@ defmodule ExDisco.Users do
   end
 
   @doc """
-  Retrieve a user by username.
+  Get a user’s profile by username.
 
-  If authenticated as the requested user, the email key will be visible, and the num_list count will include the user’s private lists.
-  If authenticated as the requested user or the user’s collection/wantlist is public, the num_collection / num_wantlist keys will be visible.
+  Returns public profile information about a Discogs user including location,
+  collection and wantlist details, and ratings. If authenticated as the user,
+  additional private information like email may be visible.
+
+  ## Examples
+
+      iex> ExDisco.Users.get_profile("someuser")
+      {:ok, %ExDisco.Users.Profile{username: "someuser", location: "...", ...}}
   """
-  @spec get_profile(String.t(), API.auth()) :: {:ok, Profile.t()} | {:error, Error.t()}
+  @spec get_profile(String.t(), ExDisco.Auth.t()) :: {:ok, Profile.t()} | {:error, Error.t()}
   def get_profile(username, auth \\ nil)
 
   def get_profile(username, auth) do
