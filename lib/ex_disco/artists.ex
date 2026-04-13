@@ -21,7 +21,7 @@ defmodule ExDisco.Artists do
   See `ExDisco.Artists.Artist` for the artist data structure.
   """
 
-  alias ExDisco.{Request, Error}
+  alias ExDisco.{Error, Page, Request}
   alias ExDisco.Artists.Artist
   alias ExDisco.Types.ReleaseSummary
 
@@ -50,19 +50,33 @@ defmodule ExDisco.Artists do
   @doc """
   Fetch releases (albums, EPs, singles) by an artist.
 
-  Returns the first page of the artist's releases. If you need pagination
-  control, use the Request builder directly with execute_page/2.
+  Returns a paginated list of the artist's releases. Use the `opts` keyword list
+  to control pagination and sorting.
+
+  ## Options
+
+  - `:page` — Page number (default: 1)
+  - `:per_page` — Items per page (default: 50)
+  - `:sort` — Sort field: `year`, `title`, `format`
+  - `:sort_order` — `asc` or `desc`
 
   ## Examples
 
       iex> ExDisco.Artists.get_releases(1)
-      {:ok, [%ExDisco.Types.ReleaseSummary{...}, ...]}
+      {:ok, %ExDisco.Page{items: [%ExDisco.Types.ReleaseSummary{}, ...], total: 42}}
+
+      iex> ExDisco.Artists.get_releases(1, page: 2, per_page: 25, sort: "year")
+      {:ok, %ExDisco.Page{items: [...], page: 2, pages: 3}}
   """
-  @spec get_releases(pos_integer()) :: {:ok, [ReleaseSummary.t()]} | {:error, Error.t()}
-  def get_releases(id) when is_integer(id) and id > 0 do
+  @spec get_releases(pos_integer(), keyword()) ::
+          {:ok, Page.t(ReleaseSummary.t())} | {:error, Error.t()}
+  def get_releases(id, opts \\ [])
+
+  def get_releases(id, opts) when is_integer(id) and id > 0 and is_list(opts) do
     Request.get("/artists/#{id}/releases")
-    |> Request.execute_collection("releases", &ReleaseSummary.from_api/1)
+    |> Request.put_query(opts)
+    |> Request.execute_page("releases", &ReleaseSummary.from_api/1)
   end
 
-  def get_releases(_), do: Error.invalid_argument("id must be a positive integer")
+  def get_releases(_, _), do: Error.invalid_argument("id must be a positive integer")
 end

@@ -86,7 +86,7 @@ defmodule ExDisco do
 
   Fetch release information:
 
-      {:ok, release} = ExDisco.Releases.get(249504)
+      {:ok, release} = ExDisco.Releases.get_release(249504)
 
   Search the database:
 

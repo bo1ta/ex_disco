@@ -66,7 +66,7 @@ Fetch an artist by ID:
 Fetch a release:
 
 ```elixir
-{:ok, %ExDisco.Releases.Release{} = release} = ExDisco.Releases.get(249504)
+{:ok, %ExDisco.Releases.Release{} = release} = ExDisco.Releases.get_release(249504)
 ```
 
 Search for music:

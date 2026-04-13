@@ -1,7 +1,7 @@
 defmodule ExDisco.ArtistTest do
   use ExDisco.ApiCase, async: false
 
-  alias ExDisco.Artists
+  alias ExDisco.{Artists, Page}
   alias ExDisco.Artists.{Artist, ArtistAlias}
 
   alias ExDisco.Types.{Image, ReleaseSummary}
@@ -58,22 +58,22 @@ defmodule ExDisco.ArtistTest do
     end
   end
 
-  describe "get_releases/1" do
-    test "returns a list of release summaries" do
+  describe "get_releases/1,2" do
+    test "returns a Page of release summaries" do
       stub_response(fixture("artist_releases"), fn conn ->
         assert conn.method == "GET"
         assert conn.request_path == "/artists/263282/releases"
       end)
 
-      assert {:ok, releases} = Artists.get_releases(263_282)
-      assert length(releases) == 2
-      assert Enum.all?(releases, &match?(%ReleaseSummary{}, &1))
+      assert {:ok, %Page{items: items}} = Artists.get_releases(263_282)
+      assert length(items) == 2
+      assert Enum.all?(items, &match?(%ReleaseSummary{}, &1))
     end
 
     test "maps master release fields correctly" do
       stub_response(fixture("artist_releases"))
 
-      assert {:ok, [master | _]} = Artists.get_releases(263_282)
+      assert {:ok, %Page{items: [master | _]}} = Artists.get_releases(263_282)
 
       assert master.id == 905_102
       assert master.title == "Platonic Techno"
@@ -94,7 +94,7 @@ defmodule ExDisco.ArtistTest do
         })
       end)
 
-      assert {:ok, []} = Artists.get_releases(1)
+      assert {:ok, %Page{items: []}} = Artists.get_releases(1)
     end
   end
 end

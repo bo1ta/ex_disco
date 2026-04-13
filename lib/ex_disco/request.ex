@@ -155,10 +155,12 @@ defmodule ExDisco.Request do
       iex> Request.get("/users/me") |> Request.put_auth(token)
       %ExDisco.Request{auth: %ExDisco.Auth.UserToken{token: "my_token"}, ...}
   """
-  @spec put_auth(t(), Authorization.t()) :: t()
+  @spec put_auth(t(), Authorization.t() | nil) :: t()
   def put_auth(%__MODULE__{} = request, %Authorization{} = auth) do
     %{request | auth: auth}
   end
+
+  def put_auth(%__MODULE__{} = request, nil), do: request
 
   # --- Executors ---
 

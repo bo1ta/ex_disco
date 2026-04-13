@@ -57,6 +57,8 @@ defmodule ExDisco.MixProject do
           ExDisco.Artists.Artist,
           ExDisco.Artists.ArtistAlias,
           ExDisco.Releases.Release,
+          ExDisco.Releases.MasterRelease,
+          ExDisco.Releases.MasterVersion,
           ExDisco.Releases.Track,
           ExDisco.Releases.Format,
           ExDisco.Releases.Video,

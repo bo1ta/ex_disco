@@ -1,7 +1,7 @@
 defmodule ExDisco.LabelsTest do
   use ExDisco.ApiCase, async: false
 
-  alias ExDisco.{Labels, Error}
+  alias ExDisco.{Labels, Error, Page}
   alias ExDisco.Labels.Label
   alias ExDisco.Types.{Image, ReleaseSummary}
 
@@ -53,21 +53,21 @@ defmodule ExDisco.LabelsTest do
     end
   end
 
-  describe "get_releases/1" do
-    test "returns a list of release summaries" do
+  describe "get_releases/1,2" do
+    test "returns a Page of release summaries" do
       stub_response(fixture("label_releases"), fn conn ->
         assert conn.method == "GET"
         assert conn.request_path == "/labels/1/releases"
       end)
 
-      assert {:ok, [release, _]} = Labels.get_releases(1)
+      assert {:ok, %Page{items: [release, _]}} = Labels.get_releases(1)
       assert %ReleaseSummary{} = release
     end
 
     test "maps label release fields correctly" do
       stub_response(fixture("label_releases"))
 
-      assert {:ok, [release, _]} = Labels.get_releases(1)
+      assert {:ok, %Page{items: [release, _]}} = Labels.get_releases(1)
 
       assert release.id == 1018
       assert release.title == "Electro Boogie Vol 2 (The Throwdown)"

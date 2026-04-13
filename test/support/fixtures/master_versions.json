@@ -1,0 +1,62 @@
+{
+  "pagination": {
+    "per_page": 50,
+    "items": 3,
+    "page": 1,
+    "urls": {},
+    "pages": 1
+  },
+  "versions": [
+    {
+      "id": 18926,
+      "title": "Plastic Dreams",
+      "status": "Accepted",
+      "format": "12\", 33 ⅓ RPM",
+      "country": "US",
+      "label": "Epic",
+      "released": "1993",
+      "catno": "49 74992",
+      "major_formats": ["Vinyl"],
+      "thumb": "https://img.discogs.com/primary.jpg",
+      "resource_url": "https://api.discogs.com/releases/18926",
+      "stats": {
+        "user": { "in_collection": 0, "in_wantlist": 0 },
+        "community": { "in_collection": 1067, "in_wantlist": 765 }
+      }
+    },
+    {
+      "id": 34228,
+      "title": "Plastic Dreams (Mixes)",
+      "status": "Accepted",
+      "format": "12\", 33 ⅓ RPM",
+      "country": "UK",
+      "label": "R & S Records",
+      "released": "1993",
+      "catno": "RSGB 101T",
+      "major_formats": ["Vinyl"],
+      "thumb": "https://img.discogs.com/secondary.jpg",
+      "resource_url": "https://api.discogs.com/releases/34228",
+      "stats": {
+        "user": { "in_collection": 0, "in_wantlist": 0 },
+        "community": { "in_collection": 842, "in_wantlist": 762 }
+      }
+    },
+    {
+      "id": 1873038,
+      "title": "Plastic Dreams Mixes",
+      "status": "Accepted",
+      "format": "12\", White Label, 33 ⅓ RPM, Promo",
+      "country": "UK",
+      "label": "R & S Records",
+      "released": "1993",
+      "catno": "RSGB 101 T",
+      "major_formats": ["Vinyl"],
+      "thumb": "https://img.discogs.com/tertiary.jpg",
+      "resource_url": "https://api.discogs.com/releases/1873038",
+      "stats": {
+        "user": { "in_collection": 0, "in_wantlist": 0 },
+        "community": { "in_collection": 20, "in_wantlist": 285 }
+      }
+    }
+  ]
+}

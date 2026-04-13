@@ -39,7 +39,7 @@ defmodule ExDisco.Releases.Release do
 
   Fetch and explore a release:
 
-      {:ok, release} = ExDisco.Releases.get(249504)
+      {:ok, release} = ExDisco.Releases.get_release(249504)
       IO.inspect(release.title)
       IO.inspect(release.year)
 
