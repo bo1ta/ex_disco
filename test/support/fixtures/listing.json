@@ -1,0 +1,55 @@
+{
+  "status": "For Sale",
+  "price": {
+    "currency": "USD",
+    "value": 120.0
+  },
+  "original_price": {
+    "curr_abbr": "USD",
+    "curr_id": 1,
+    "formatted": "$120.00",
+    "value": 120.0
+  },
+  "allow_offers": false,
+  "sleeve_condition": "Mint (M)",
+  "id": 172723812,
+  "condition": "Mint (M)",
+  "posted": "2014-07-15T12:55:01-07:00",
+  "ships_from": "United States",
+  "uri": "https://www.discogs.com/sell/item/172723812",
+  "comments": "Brand new... Still sealed!",
+  "seller": {
+    "username": "Booms528",
+    "avatar_url": "https://secure.gravatar.com/avatar/test.jpg",
+    "resource_url": "https://api.discogs.com/users/Booms528",
+    "url": "https://api.discogs.com/users/Booms528",
+    "id": 1369620,
+    "shipping": "Buyer responsible for shipping.",
+    "payment": "PayPal",
+    "stats": {
+      "rating": "100",
+      "stars": 5.0,
+      "total": 15
+    }
+  },
+  "shipping_price": {
+    "currency": "USD",
+    "value": 2.50
+  },
+  "original_shipping_price": {
+    "curr_abbr": "USD",
+    "curr_id": 1,
+    "formatted": "$2.50",
+    "value": 2.5
+  },
+  "release": {
+    "catalog_number": "541125-1",
+    "resource_url": "https://api.discogs.com/releases/5610049",
+    "year": 2014,
+    "id": 5610049,
+    "description": "LCD Soundsystem - The Long Goodbye",
+    "thumbnail": "https://api-img.discogs.com/thumbnail.jpg"
+  },
+  "resource_url": "https://api.discogs.com/marketplace/listings/172723812",
+  "audio": false
+}

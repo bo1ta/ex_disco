@@ -1,0 +1,74 @@
+{
+  "pagination": {
+    "per_page": 50,
+    "items": 2,
+    "page": 1,
+    "urls": {},
+    "pages": 1
+  },
+  "listings": [
+    {
+      "status": "For Sale",
+      "price": {
+        "currency": "USD",
+        "value": 149.99
+      },
+      "allow_offers": true,
+      "sleeve_condition": "Near Mint (NM or M-)",
+      "id": 150899904,
+      "condition": "Near Mint (NM or M-)",
+      "posted": "2014-07-01T10:20:17-07:00",
+      "ships_from": "United States",
+      "uri": "https://www.discogs.com/sell/item/150899904",
+      "comments": "Includes promotional booklet from original purchase!",
+      "seller": {
+        "username": "rappcats",
+        "resource_url": "https://api.discogs.com/users/rappcats",
+        "id": 2098225
+      },
+      "release": {
+        "catalog_number": "TMR092",
+        "resource_url": "https://api.discogs.com/releases/2992668",
+        "year": 2011,
+        "id": 2992668,
+        "description": "Danger Mouse & Daniele Luppi - Rome",
+        "artist": "Danger Mouse & Daniele Luppi",
+        "title": "Rome",
+        "format": "(LP)",
+        "thumbnail": "https://api-img.discogs.com/thumbnail.jpg"
+      },
+      "resource_url": "https://api.discogs.com/marketplace/listings/150899904",
+      "audio": false
+    },
+    {
+      "status": "For Sale",
+      "price": {
+        "currency": "USD",
+        "value": 49.99
+      },
+      "allow_offers": false,
+      "sleeve_condition": "Very Good Plus (VG+)",
+      "id": 155473349,
+      "condition": "Very Good Plus (VG+)",
+      "posted": "2014-07-01T10:20:17-07:00",
+      "ships_from": "United States",
+      "uri": "https://www.discogs.com/sell/item/155473349",
+      "comments": "Includes slipmats",
+      "seller": {
+        "username": "rappcats",
+        "resource_url": "https://api.discogs.com/users/rappcats",
+        "id": 2098225
+      },
+      "release": {
+        "catalog_number": "STH 2222",
+        "resource_url": "https://api.discogs.com/releases/1900152",
+        "year": 2009,
+        "id": 1900152,
+        "description": "Various - Stones Throw X Serato",
+        "thumbnail": "https://api-img.discogs.com/thumbnail2.jpg"
+      },
+      "resource_url": "https://api.discogs.com/marketplace/listings/155473349",
+      "audio": false
+    }
+  ]
+}
