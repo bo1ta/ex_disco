@@ -52,9 +52,23 @@ defmodule ExDisco.UsersTest do
       assert {:ok, %Profile{}} = Users.get_profile(user_token(), "rodneyfool")
     end
 
+    test "encodes usernames in the request path" do
+      stub_response(fixture("profile"), fn conn ->
+        assert conn.request_path == "/users/space%20cadet%2F%231"
+      end)
+
+      assert {:ok, %Profile{}} = Users.get_profile("space cadet/#1")
+    end
+
     test "returns error when not found" do
       stub_error(404)
       assert {:error, %Error{type: :not_found}} = Users.get_profile("rodneyfool")
+    end
+
+    test "returns invalid argument for empty usernames" do
+      assert {:error,
+              %Error{type: :invalid_argument, message: "username must be a non-empty string"}} =
+               Users.get_profile("")
     end
   end
 
@@ -74,6 +88,16 @@ defmodule ExDisco.UsersTest do
                )
     end
 
+    test "encodes usernames when updating a profile" do
+      stub_response(fixture("profile"), fn conn ->
+        assert conn.method == "POST"
+        assert conn.request_path == "/users/space%20cadet%2F%231"
+      end)
+
+      assert {:ok, %Profile{}} =
+               Users.update_profile(user_token(), "space cadet/#1", %{location: "Paris"})
+    end
+
     test "returns unauthorized error for nil authorization" do
       assert {:error, %Error{type: :unauthorized}} =
                Users.update_profile(nil, "memory", %{curr_abbr: "GBP"})
@@ -82,6 +106,12 @@ defmodule ExDisco.UsersTest do
     test "returns invalid argument error for invalid params" do
       assert {:error, %Error{type: :invalid_argument}} =
                Users.update_profile(user_token(), "memory", %{curr_abbr: "TEST"})
+    end
+
+    test "returns invalid argument for empty usernames" do
+      assert {:error,
+              %Error{type: :invalid_argument, message: "username must be a non-empty string"}} =
+               Users.update_profile(user_token(), "", %{location: "Paris"})
     end
   end
 end

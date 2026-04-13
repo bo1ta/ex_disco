@@ -72,8 +72,8 @@ Fetch a release:
 Search for music:
 
 ```elixir
-{:ok, results} = ExDisco.Search.query(q: "Thriller", type: :release)
-IO.inspect(results.items |> Enum.count())
+{:ok, page} = ExDisco.Search.query(q: "Thriller", type: :release)
+IO.inspect(Enum.count(page.items))
 # 42
 ```
 
@@ -84,7 +84,7 @@ case ExDisco.Artists.get(999999999) do
   {:ok, artist} -> "Found: #{artist.name}"
   {:error, error} -> "Not found: #{error.message}"
 end
-# "Not found: 404 Not Found"
+# "Not found: Discogs request failed with status 404"
 ```
 
 ## Documentation

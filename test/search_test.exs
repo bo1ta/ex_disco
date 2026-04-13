@@ -1,16 +1,12 @@
 defmodule ExDisco.SearchTest do
   use ExDisco.ApiCase, async: false
 
+  alias ExDisco.Page
   alias ExDisco.Search
 
   test "query/2 hits the search endpoint with type and filters" do
     stub_response(
-      %{
-        "pagination" => %{"page" => 1, "pages" => 1, "per_page" => 50, "items" => 1},
-        "results" => [
-          %{"id" => 1, "title" => "Fabric", "type" => "label"}
-        ]
-      },
+      fixture("search"),
       fn conn ->
         assert conn.method == "GET"
         assert conn.request_path == "/database/search"
@@ -21,9 +17,14 @@ defmodule ExDisco.SearchTest do
       end
     )
 
-    assert {:ok, [result]} = Search.query(type: :label, q: "Fabric")
-    assert result["id"] == 1
-    assert result["title"] == "Fabric"
+    assert {:ok, %Page{} = page} = Search.query(type: :label, q: "Fabric")
+    assert page.page == 1
+    assert page.pages == 66
+    assert page.per_page == 3
+    assert page.total == 198
+    assert [result, _, _] = page.items
+    assert result["id"] == 2_028_757
+    assert result["title"] == "Nirvana - Nevermind"
   end
 
   test "query/2 injects type from atom when not provided" do
@@ -37,6 +38,7 @@ defmodule ExDisco.SearchTest do
       })
     end)
 
-    assert {:ok, []} = Search.query(q: "Strings of Life", type: :release)
+    assert {:ok, %Page{items: [], page: 1, pages: 1, per_page: 50, total: 0}} =
+             Search.query(q: "Strings of Life", type: :release)
   end
 end

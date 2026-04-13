@@ -3,8 +3,8 @@ defmodule ExDisco.Search do
   Global search across the entire Discogs database.
 
   The search API allows you to search for artists, releases, masters, and labels
-  using various filters. Results are returned as raw maps that you can map to
-  typed structs if needed.
+  using various filters. Results are returned in a paginated `ExDisco.Page`
+  containing raw maps that you can map to typed structs if needed.
 
   ## Search Types
 
@@ -29,8 +29,8 @@ defmodule ExDisco.Search do
 
   Search for an artist:
 
-      {:ok, results} = ExDisco.Search.query([type: :artist, q: "Rhadoo"])
-      Enum.each(results, &IO.inspect(&1["title"]))
+      {:ok, page} = ExDisco.Search.query([type: :artist, q: "Rhadoo"])
+      Enum.each(page.items, &IO.inspect(&1["title"]))
 
   Search releases with filters:
 
@@ -42,7 +42,7 @@ defmodule ExDisco.Search do
       ])
   """
 
-  alias ExDisco.{Request, Error}
+  alias ExDisco.{Request, Error, Page}
 
   @type query_type :: :release | :master | :artist | :label
 
@@ -71,23 +71,24 @@ defmodule ExDisco.Search do
   @doc """
   Search the Discogs database with filters.
 
-  Searches across the database using various filter parameters. Returns raw
-  result maps (not typed structs). You can map results to structs if needed.
+  Searches across the database using various filter parameters. Returns a
+  paginated `ExDisco.Page` of raw result maps (not typed structs). You can map
+  each result to a struct if needed.
 
   The `:type` filter is usually required to specify what you're searching for.
 
   ## Examples
 
       iex> ExDisco.Search.query([type: :artist, q: "Rhadoo"])
-      {:ok, [%{"id" => 123, "title" => "Rhadoo", ...}, ...]}
+      {:ok, %ExDisco.Page{items: [%{"id" => 123, "title" => "Rhadoo", ...}], page: 1}}
 
       iex> ExDisco.Search.query([type: :release, title: "Thriller", year: 1982])
-      {:ok, [%{"id" => 456, "title" => "Thriller", ...}, ...]}
+      {:ok, %ExDisco.Page{items: [%{"id" => 456, "title" => "Thriller", ...}]}}
 
       iex> ExDisco.Search.query([type: :label, q: "Defected"])
-      {:ok, [%{"id" => 789, "title" => "Defected", ...}, ...]}
+      {:ok, %ExDisco.Page{items: [%{"id" => 789, "title" => "Defected", ...}]}}
   """
-  @spec query(filters()) :: {:ok, [map()]} | {:error, Error.t()}
+  @spec query(filters()) :: {:ok, Page.t(map())} | {:error, Error.t()}
   def query(filters) when is_list(filters) do
     params =
       filters
@@ -95,6 +96,6 @@ defmodule ExDisco.Search do
 
     Request.get("/database/search")
     |> Request.put_query(params)
-    |> Request.execute_collection(& &1)
+    |> Request.execute_page(& &1)
   end
 end

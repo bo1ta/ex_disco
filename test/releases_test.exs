@@ -226,6 +226,45 @@ defmodule ExDisco.ReleasesTest do
       assert user_rating.release_id == 249_504
       assert user_rating.rating == 5
     end
+
+    test "encodes usernames in the request path" do
+      stub_response(fixture("user_rating"), fn conn ->
+        assert conn.request_path == "/releases/249504/rating/space%20cadet%2F%231"
+      end)
+
+      assert {:ok, %UserRating{}} = Releases.get_user_rating(249_504, "space cadet/#1")
+    end
+
+    test "returns invalid argument for empty usernames" do
+      assert {:error, %Error{type: :invalid_argument, message: "username must be a non-empty string"}} =
+               Releases.get_user_rating(249_504, "")
+    end
+  end
+
+  describe "put_user_rating/4" do
+    alias ExDisco.Releases.UserRating
+
+    test "hits the correct endpoint with encoded username and auth header" do
+      stub_response(fixture("user_rating"), fn conn ->
+        assert conn.method == "PUT"
+        assert conn.request_path == "/releases/249504/rating/space%20cadet%2F%231"
+        assert {"authorization", "Discogs token=test-token"} in conn.req_headers
+        assert conn.body_params == %{"release_id" => 249_504, "username" => "space cadet/#1", "rating" => 5}
+      end)
+
+      assert {:ok, %UserRating{}} =
+               Releases.put_user_rating(user_token(), 249_504, "space cadet/#1", 5)
+    end
+
+    test "returns unauthorized error for nil auth" do
+      assert {:error, %Error{type: :unauthorized}} =
+               Releases.put_user_rating(nil, 249_504, "memory", 5)
+    end
+
+    test "returns invalid argument for empty usernames" do
+      assert {:error, %Error{type: :invalid_argument, message: "username must be a non-empty string"}} =
+               Releases.put_user_rating(user_token(), 249_504, "", 5)
+    end
   end
 
   describe "delete_user_rating/3" do
@@ -239,9 +278,23 @@ defmodule ExDisco.ReleasesTest do
       assert :ok = Releases.delete_user_rating(user_token(), 249_504, "memory")
     end
 
+    test "encodes usernames in the request path" do
+      stub_response(%{}, fn conn ->
+        assert conn.method == "DELETE"
+        assert conn.request_path == "/releases/249504/rating/space%20cadet%2F%231"
+      end)
+
+      assert :ok = Releases.delete_user_rating(user_token(), 249_504, "space cadet/#1")
+    end
+
     test "returns unauthorized error for nil auth" do
       assert {:error, %Error{type: :unauthorized}} =
                Releases.delete_user_rating(nil, 249_504, "memory")
+    end
+
+    test "returns invalid argument for empty usernames" do
+      assert {:error, %Error{type: :invalid_argument, message: "username must be a non-empty string"}} =
+               Releases.delete_user_rating(user_token(), 249_504, "")
     end
   end
 

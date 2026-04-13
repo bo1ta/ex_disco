@@ -90,7 +90,8 @@ defmodule ExDisco do
 
   Search the database:
 
-      {:ok, results} = ExDisco.Search.query([q: "Thriller", type: :release])
+      {:ok, page} = ExDisco.Search.query([q: "Thriller", type: :release])
+      IO.inspect(page.items)
 
   Handle errors:
 

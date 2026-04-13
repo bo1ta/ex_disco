@@ -36,6 +36,8 @@ defmodule ExDisco.Users do
   alias ExDisco.Auth.Authorization
   alias ExDisco.Users.{Identity, Profile}
 
+  import ExDisco.Guards, only: [is_non_empty_binary: 1]
+
   @doc """
   Get the authenticated user's identity.
 
@@ -61,7 +63,7 @@ defmodule ExDisco.Users do
   def get_identity(_), do: Error.auth_required()
 
   @doc """
-  Get a user's profile by username.
+  Get a user's profile by username. Username must be a non-empty string.
 
   Returns public profile information about a Discogs user including location,
   collection and wantlist details, and ratings. If authenticated as the user,
@@ -73,26 +75,26 @@ defmodule ExDisco.Users do
       {:ok, %ExDisco.Users.Profile{username: "someuser", location: "...", ...}}
   """
   @spec get_profile(String.t()) :: {:ok, Profile.t()} | {:error, Error.t()}
-  def get_profile(username) when is_binary(username) do
-    Request.get("/users/#{username}")
+  def get_profile(username) when is_non_empty_binary(username) do
+    Request.get(["users", username])
     |> Request.execute(&Profile.from_api/1)
   end
 
-  def get_profile(_), do: Error.invalid_argument("Username must be a string.")
+  def get_profile(_), do: Error.invalid_argument("username must be a non-empty string")
 
   @spec get_profile(Authorization.t(), String.t()) :: {:ok, Profile.t()} | {:error, Error.t()}
-  def get_profile(%Authorization{} = auth, username) when is_binary(username) do
-    Request.get("/users/#{username}")
+  def get_profile(%Authorization{} = auth, username) when is_non_empty_binary(username) do
+    Request.get(["users", username])
     |> Request.put_auth(auth)
     |> Request.execute(&Profile.from_api/1)
   end
 
   def get_profile(nil, _), do: Error.auth_required()
 
-  def get_profile(_, _), do: Error.invalid_argument("Username must be a string")
+  def get_profile(_, _), do: Error.invalid_argument("username must be a non-empty string")
 
   @doc """
-  Update the authenticated user's profile.
+  Update the authenticated user's profile. Username must be a non-empty string.
 
   Pass a map with only the fields you want to change.
   Unset fields are omitted from the request and left unchanged on Discogs.
@@ -111,9 +113,9 @@ defmodule ExDisco.Users do
   @spec update_profile(Authorization.t(), String.t(), Profile.update()) ::
           {:ok, Profile.t()} | {:error, Error.t()}
   def update_profile(%Authorization{} = auth, username, params)
-      when is_binary(username) and is_map(params) do
+      when is_non_empty_binary(username) and is_map(params) do
     with :ok <- Profile.validate_update(params) do
-      Request.post("/users/#{username}")
+      Request.post(["users", username])
       |> Request.put_body(params)
       |> Request.put_auth(auth)
       |> Request.execute(&Profile.from_api/1)
@@ -122,5 +124,9 @@ defmodule ExDisco.Users do
 
   def update_profile(nil, _, _), do: Error.auth_required()
 
-  def update_profile(_, _, _), do: Error.invalid_argument()
+  def update_profile(_, username, _) when not is_non_empty_binary(username),
+    do: Error.invalid_argument("username must be a non-empty string")
+
+  def update_profile(_, _, params) when not is_map(params),
+    do: Error.invalid_argument("params must be a map")
 end

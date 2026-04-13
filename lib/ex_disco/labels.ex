@@ -25,6 +25,8 @@ defmodule ExDisco.Labels do
   alias ExDisco.Labels.Label
   alias ExDisco.Types.ReleaseSummary
 
+  import ExDisco.Guards, only: [is_positive_integer: 1]
+
   @doc """
   Fetch a label by Discogs ID.
 
@@ -40,7 +42,7 @@ defmodule ExDisco.Labels do
       {:error, %ExDisco.Error{type: :not_found}}
   """
   @spec get(pos_integer()) :: {:ok, Label.t()} | {:error, Error.t()}
-  def get(id) when is_integer(id) and id > 0 do
+  def get(id) when is_positive_integer(id) do
     Request.get("/labels/#{id}")
     |> Request.execute(&Label.from_api/1)
   end
@@ -70,11 +72,15 @@ defmodule ExDisco.Labels do
           {:ok, Page.t(ReleaseSummary.t())} | {:error, Error.t()}
   def get_releases(id, opts \\ [])
 
-  def get_releases(id, opts) when is_integer(id) and id > 0 and is_list(opts) do
+  def get_releases(id, opts) when is_positive_integer(id) and is_list(opts) do
     Request.get("/labels/#{id}/releases")
     |> Request.put_query(opts)
     |> Request.execute_page("releases", &ReleaseSummary.from_api/1)
   end
 
-  def get_releases(_, _), do: Error.invalid_argument("id must be a positive integer")
+  def get_releases(id, _) when not is_positive_integer(id),
+    do: Error.invalid_argument("id must be a positive integer")
+
+  def get_releases(_, opts) when not is_list(opts),
+    do: Error.invalid_argument("opts must be a list of keywords")
 end

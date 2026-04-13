@@ -65,6 +65,9 @@ defmodule ExDisco.Request do
           body: map() | nil
         }
 
+  @type path_segment :: String.t() | integer()
+  @type path_input :: String.t() | [path_segment()]
+
   # --- Builder ---
 
   @doc """
@@ -74,9 +77,14 @@ defmodule ExDisco.Request do
 
       iex> Request.get("/artists/1")
       %ExDisco.Request{method: :get, path: "/artists/1", query: [], auth: nil}
+      iex> Request.get(["users", "space cadet/#1"])
+      %ExDisco.Request{method: :get, path: "/users/space%20cadet%2F%231", query: [], auth: nil}
   """
-  @spec get(String.t()) :: t()
-  def get(path), do: %__MODULE__{method: :get, path: path}
+  def get(segments) when is_list(segments),
+    do: %__MODULE__{method: :get, path: build_path(segments)}
+
+  @spec get(path_input()) :: t()
+  def get(path) when is_binary(path), do: %__MODULE__{method: :get, path: path}
 
   @doc """
   Construct a POST request to the given path.
@@ -86,8 +94,11 @@ defmodule ExDisco.Request do
       iex> Request.post("/oauth/access_token")
       %ExDisco.Request{method: :post, path: "/oauth/access_token", query: [], auth: nil}
   """
-  @spec post(String.t()) :: t()
-  def post(path), do: %__MODULE__{method: :post, path: path}
+  def post(segments) when is_list(segments),
+    do: %__MODULE__{method: :post, path: build_path(segments)}
+
+  @spec post(path_input()) :: t()
+  def post(path) when is_binary(path), do: %__MODULE__{method: :post, path: path}
 
   @doc """
   Construct a PUT request to the given path.
@@ -97,8 +108,11 @@ defmodule ExDisco.Request do
       iex> Request.put("/releases/249504/rating/memory")
       %ExDisco.Request{method: :put, path: "/releases/249504/rating/memory", query: [], auth: nil}
   """
-  @spec put(String.t()) :: t()
-  def put(path), do: %__MODULE__{method: :put, path: path}
+  def put(segments) when is_list(segments),
+    do: %__MODULE__{method: :put, path: build_path(segments)}
+
+  @spec put(path_input()) :: t()
+  def put(path) when is_binary(path), do: %__MODULE__{method: :put, path: path}
 
   @doc """
   Construct a DELETE request to the given path.
@@ -108,8 +122,11 @@ defmodule ExDisco.Request do
       iex> Request.delete("/releases/249504/rating/memory")
       %ExDisco.Request{method: :delete, path: "/releases/249504/rating/memory", query: [], auth: nil}
   """
-  @spec delete(String.t()) :: t()
-  def delete(path), do: %__MODULE__{method: :delete, path: path}
+  def delete(segments) when is_list(segments),
+    do: %__MODULE__{method: :delete, path: build_path(segments)}
+
+  @spec delete(path_input()) :: t()
+  def delete(path) when is_binary(path), do: %__MODULE__{method: :delete, path: path}
 
   @doc """
   Set the request body.
@@ -292,5 +309,17 @@ defmodule ExDisco.Request do
 
   defp normalize({:error, exception}) do
     {:error, API.transport_error(exception)}
+  end
+
+  defp build_path(segments) do
+    "/" <> Enum.map_join(segments, "/", &encode_path_segment/1)
+  end
+
+  defp encode_path_segment(segment) when is_binary(segment) do
+    URI.encode(segment, &URI.char_unreserved?/1)
+  end
+
+  defp encode_path_segment(segment) when is_integer(segment) do
+    Integer.to_string(segment)
   end
 end

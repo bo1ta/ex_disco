@@ -22,6 +22,8 @@ defmodule ExDisco.Releases do
 
   alias ExDisco.Releases.{MasterRelease, MasterVersion, Release, Rating, ReleaseStats, UserRating}
 
+  import ExDisco.Guards, only: [is_non_empty_binary: 1, is_positive_integer: 1]
+
   @doc """
   Fetch a release by Discogs ID.
 
@@ -37,7 +39,7 @@ defmodule ExDisco.Releases do
       {:error, %ExDisco.Error{type: :not_found}}
   """
   @spec get_release(pos_integer()) :: {:ok, Release.t()} | {:error, Error.t()}
-  def get_release(id) when is_integer(id) and id > 0 do
+  def get_release(id) when is_positive_integer(id) do
     Request.get("/releases/#{id}")
     |> Request.execute(&Release.from_api/1)
   end
@@ -56,7 +58,7 @@ defmodule ExDisco.Releases do
       {:ok, %ExDisco.Releases.ReleaseStats{is_offensive: false, num_want: 42, num_have: 156}}
   """
   @spec get_stats(pos_integer()) :: {:ok, ReleaseStats.t()} | {:error, Error.t()}
-  def get_stats(id) when is_integer(id) and id > 0 do
+  def get_stats(id) when is_positive_integer(id) do
     Request.get("/releases/#{id}/stats")
     |> Request.execute(&ReleaseStats.from_api/1)
   end
@@ -74,7 +76,7 @@ defmodule ExDisco.Releases do
       {:ok, %ExDisco.Releases.Rating{average: 4.2, count: 87}}
   """
   @spec get_rating(pos_integer()) :: {:ok, Rating.t()} | {:error, Error.t()}
-  def get_rating(id) when is_integer(id) and id > 0 do
+  def get_rating(id) when is_positive_integer(id) do
     Request.get("/releases/#{id}/rating")
     |> Request.execute(&Rating.from_api/1)
   end
@@ -85,7 +87,7 @@ defmodule ExDisco.Releases do
   Retrieves the master release given the master release ID
   """
   @spec get_master_release(pos_integer()) :: {:ok, MasterRelease.t()} | {:error, Error.t()}
-  def get_master_release(id) when is_integer(id) and id > 0 do
+  def get_master_release(id) when is_positive_integer(id) do
     Request.get("/masters/#{id}")
     |> Request.execute(&MasterRelease.from_api/1)
   end
@@ -126,7 +128,7 @@ defmodule ExDisco.Releases do
   def get_master_versions(master_id, opts \\ [])
 
   def get_master_versions(master_id, opts)
-      when is_integer(master_id) and master_id > 0 and is_list(opts) do
+      when is_positive_integer(master_id) and is_list(opts) do
     with :ok <- validate_version_opts(opts) do
       Request.get("/masters/#{master_id}/versions")
       |> Request.put_query(opts)
@@ -140,9 +142,7 @@ defmodule ExDisco.Releases do
   defp validate_version_opts(opts) do
     cond do
       Keyword.has_key?(opts, :sort) and opts[:sort] not in @valid_version_sort ->
-        Error.invalid_argument(
-          "sort must be one of: #{Enum.join(@valid_version_sort, ", ")}"
-        )
+        Error.invalid_argument("sort must be one of: #{Enum.join(@valid_version_sort, ", ")}")
 
       Keyword.has_key?(opts, :sort_order) and opts[:sort_order] not in @valid_sort_order ->
         Error.invalid_argument("sort_order must be one of: asc, desc")
@@ -158,12 +158,16 @@ defmodule ExDisco.Releases do
   If the user hasn't rated the release, then the rating will be 0.
   """
   @spec get_user_rating(pos_integer(), String.t()) :: {:ok, UserRating.t()} | {:error, Error.t()}
-  def get_user_rating(release_id, username) when is_integer(release_id) and release_id > 0 do
-    Request.get("/releases/#{release_id}/rating/#{username}")
+  def get_user_rating(release_id, username)
+      when is_positive_integer(release_id) and is_non_empty_binary(username) do
+    Request.get(["releases", release_id, "rating", username])
     |> Request.execute(&UserRating.from_api/1)
   end
 
-  def get_user_rating(_, _), do: Error.invalid_argument("release_id must be a positive integer")
+  def get_user_rating(release_id, _username) when not is_positive_integer(release_id),
+    do: Error.invalid_argument("release_id must be a positive integer")
+
+  def get_user_rating(_, _), do: Error.invalid_argument("username must be a non-empty string")
 
   @doc """
   Updates the release’s rating for a given user and returns the updated user rating.
@@ -184,18 +188,24 @@ defmodule ExDisco.Releases do
   @spec put_user_rating(Authorization.t(), pos_integer(), String.t(), pos_integer()) ::
           {:ok, UserRating.t()} | {:error, Error.t()}
   def put_user_rating(%Authorization{} = auth, release_id, username, rating)
-      when is_integer(release_id) and release_id > 0 and is_integer(rating) and rating in 1..5 do
-    Request.put("/releases/#{release_id}/rating/#{username}")
+      when is_positive_integer(release_id) and is_non_empty_binary(username) and rating in 1..5 do
+    Request.put(["releases", release_id, "rating", username])
     |> Request.put_auth(auth)
     |> Request.put_body(%{release_id: release_id, username: username, rating: rating})
     |> Request.execute(&UserRating.from_api/1)
   end
 
-  def put_user_rating(_, _, _, rating) when is_integer(rating) and rating not in 1..5,
-    do: Error.invalid_argument("rating must be between 1 and 5")
+  def put_user_rating(nil, _, _, _), do: Error.auth_required()
 
-  def put_user_rating(_, _, _, _),
-    do: Error.invalid_argument("release_id must be a positive integer")
+  def put_user_rating(_, release_id, _, _)
+      when not (is_integer(release_id) and release_id > 0),
+      do: Error.invalid_argument("release_id must be a positive integer")
+
+  def put_user_rating(_, _, username, _) when not is_non_empty_binary(username),
+    do: Error.invalid_argument("username must be a non-empty string")
+
+  def put_user_rating(_, _, _, rating) when rating not in 1..5,
+    do: Error.invalid_argument("rating must be between 1 and 5")
 
   @doc """
   Deletes the release’s rating for a given user.
@@ -205,9 +215,9 @@ defmodule ExDisco.Releases do
   @spec delete_user_rating(Authorization.t(), pos_integer(), String.t()) ::
           :ok | {:error, Error.t()}
   def delete_user_rating(%Authorization{} = auth, release_id, username)
-      when is_integer(release_id) and release_id > 0 do
+      when is_positive_integer(release_id) and is_non_empty_binary(username) do
     with {:ok, _} <-
-           Request.delete("/releases/#{release_id}/rating/#{username}")
+           Request.delete(["releases", release_id, "rating", username])
            |> Request.put_auth(auth)
            |> Request.execute() do
       :ok
@@ -216,6 +226,9 @@ defmodule ExDisco.Releases do
 
   def delete_user_rating(nil, _, _), do: Error.auth_required()
 
-  def delete_user_rating(_, _, _),
+  def delete_user_rating(_, release_id, _) when not is_positive_integer(release_id),
     do: Error.invalid_argument("release_id must be a positive integer")
+
+  def delete_user_rating(_, _, _),
+    do: Error.invalid_argument("username must be a non-empty string")
 end
